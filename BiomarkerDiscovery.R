@@ -8,7 +8,7 @@ write.table(P10Result$repStats,"~/Thesis/p10result.txt",sep='\t',col.names=T,row
 P9Result = modifiedBagging(as.matrix(readyTrainingSet),classes,rep=100,stopP=9,stopT2=1000,proportion=.8)
 write.table(P9Result$repStats,"~/Thesis/p9result.txt",sep='\t',col.names=T,row.names=T)
 P8Result = modifiedBagging(as.matrix(readyTrainingSet),classes,rep=100,stopP=8,stopT2=1000,proportion=.8)
-write.table(P8Resul$repStatst,"~/Thesis/p8result.txt",sep='\t',col.names=T,row.names=T)
+write.table(P8Result$repStats,"~/Thesis/p8result.txt",sep='\t',col.names=T,row.names=T)
 P7Result = modifiedBagging(as.matrix(readyTrainingSet),classes,rep=100,stopP=7,stopT2=1000,proportion=.8)
 write.table(P7Result$repStats,"~/Thesis/p7result.txt",sep='\t',col.names=T,row.names=T)
 P6Result = modifiedBagging(as.matrix(readyTrainingSet),classes,rep=100,stopP=6,stopT2=1000,proportion=.8)
