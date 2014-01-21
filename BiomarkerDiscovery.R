@@ -33,3 +33,8 @@ repSpec = data.frame(specificity=c(P2Result$repStats[,3],P3Result$repStats[,3],P
 repSpec$P = as.factor(repSpec$P)
 ggplot(repSpec,aes(x=specificity,colour=P))+geom_density(size=1.1,alpha=.8)+theme_classic()
 
+# Find the informative set of genes
+source('findInformative.R')
+informativeSet = findInformative(x=as.matrix(readyTrainingSet),y=classes,rep=1000,proportion=.8,stopP=7,stopT2=1000)
+
+
