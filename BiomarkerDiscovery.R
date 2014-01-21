@@ -22,3 +22,14 @@ write.table(P3Result$repStats,"~/Thesis/p3result.txt",sep='\t',col.names=T,row.n
 P2Result = modifiedBagging(as.matrix(readyTrainingSet),classes,rep=100,stopP=2,stopT2=1000,proportion=.8)
 write.table(P2Result$repStats,"~/Thesis/p2result.txt",sep='\t',col.names=T,row.names=T)
 
+# Plots of accuracy, sensitivity, and specificity for various P
+repAcc = data.frame(accuracy=c(P2Result$repStats[,1],P3Result$repStats[,1],P4Result$repStats[,1],P5Result$repStats[,1],P6Result$repStats[,1],P7Result$repStats[,1],P8Result$repStats[,1],P9Result$repStats[,1],P10Result$repStats[,1]),P=c(rep(2,100),rep(3,100),rep(4,100),rep(5,100),rep(6,100),rep(7,100),rep(8,100),rep(9,100),rep(10,100)))
+repAcc$P = as.factor(repAcc$P)
+ggplot(repAcc,aes(x=accuracy,colour=P))+geom_density(size=1.1,alpha=.8)+theme_classic()
+repSens = data.frame(sensitivity=c(P2Result$repStats[,2],P3Result$repStats[,2],P4Result$repStats[,2],P5Result$repStats[,2],P6Result$repStats[,2],P7Result$repStats[,2],P8Result$repStats[,2],P9Result$repStats[,2],P10Result$repStats[,2]),P=c(rep(2,100),rep(3,100),rep(4,100),rep(5,100),rep(6,100),rep(7,100),rep(8,100),rep(9,100),rep(10,100)))
+repSens$P = as.factor(repSens$P)
+ggplot(repSens,aes(x=sensitivity,colour=P))+geom_density(size=1.1,alpha=.8)+theme_classic()
+repSpec = data.frame(specificity=c(P2Result$repStats[,3],P3Result$repStats[,3],P4Result$repStats[,3],P5Result$repStats[,3],P6Result$repStats[,3],P7Result$repStats[,3],P8Result$repStats[,3],P9Result$repStats[,3],P10Result$repStats[,3]),P=c(rep(2,100),rep(3,100),rep(4,100),rep(5,100),rep(6,100),rep(7,100),rep(8,100),rep(9,100),rep(10,100)))
+repSpec$P = as.factor(repSpec$P)
+ggplot(repSpec,aes(x=specificity,colour=P))+geom_density(size=1.1,alpha=.8)+theme_classic()
+
