@@ -36,5 +36,6 @@ ggplot(repSpec,aes(x=specificity,colour=P))+geom_density(size=1.1,alpha=.8)+them
 # Find the informative set of genes
 source('findInformative.R')
 informativeSet = findInformative(x=as.matrix(readyTrainingSet),y=classes,rep=1000,proportion=.8,stopP=7,stopT2=1000)
+write.table(informativeSet,"~/Thesis/informativeSetDetermine.txt",sep='\t',col.names=T,row.names=T)
 
 
