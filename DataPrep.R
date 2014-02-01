@@ -22,7 +22,8 @@ castTrainingSet$barcode <- NULL
 write.table(castTrainingSet,"mungedTrainingSet.txt",sep='\t',col.names=T,row.names=T)
 
 # Now can just read from this following statement... instead of performing the above.
-read.table("mungedTrainingSet.txt",sep='\t',header=T,check.names=F,row.names=T)
+castTrainingSet <- read.table("mungedTrainingSet.txt",sep='\t',header=T,check.names=F,row.names=1)
+
 # Remove genes with 0 reads Aligned to them.
 castTrainingSet = castTrainingSet[,colSums(castTrainingSet[,1:NCOL(castTrainingSet)])!=0]
 classes = castTrainingSet$class 

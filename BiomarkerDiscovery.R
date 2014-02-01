@@ -38,4 +38,12 @@ source('findInformative.R')
 informativeSet = findInformative(x=as.matrix(readyTrainingSet),y=classes,rep=1000,proportion=.8,stopP=7,stopT2=1000)
 write.table(informativeSet,"~/Thesis/informativeSetDetermine.txt",sep='\t',col.names=T,row.names=T)
 
+# If needed to be read back in:
+informativeSet <- read.table("~/Thesis/informativeSetDetermine.txt",sep='\t',header=T,row.names=1)
 
+# Find a candidate level for T2 to cutoff at. We'll go from anything not associated with T2 > 2.0 and increment by 0.5 each run.
+# Obtain accuracy estimates from modified bagging for genes not above each cutoff to help make decision.
+infSetTwo <- modifiedBagging(as.matrix(readyTrainingSet[,-which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>2.0,3:9]))]),classes,rep=100,stopP=7,stopT2=1000,proportion=.8)
+
+# Plot when cutoff decided. Need to add lines to indicate cutoff.
+ggplot(informativeSet,aes(x=Index,y=T2))+geom_point()+theme_classic()
