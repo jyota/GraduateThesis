@@ -45,6 +45,13 @@ informativeSet <- read.table("~/Thesis/informativeSetDetermine.txt",sep='\t',hea
 # Obtain accuracy estimates from modified bagging for genes not above each cutoff to help make decision.
 infSetTwo <- modifiedBagging(as.matrix(readyTrainingSet[,-which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>2.0,3:9]))]),classes,rep=100,stopP=7,stopT2=1000,proportion=.8)
 write.table(infSetTwo$repStats,"~/Thesis/infSetTwo.txt",sep='\t',row.names=T,col.names=T)
+infSetThree <- modifiedBagging(as.matrix(readyTrainingSet[,-which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>3.0,3:9]))]),classes,rep=100,stopP=7,stopT2=1000,proportion=.8)
+write.table(infSetThree$repStats,"~/Thesis/infSetThree.txt",sep='\t',row.names=T,col.names=T)
+infSetFour <- modifiedBagging(as.matrix(readyTrainingSet[,-which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>4.0,3:9]))]),classes,rep=100,stopP=7,stopT2=1000,proportion=.8)
+write.table(infSetFour$repStats,"~/Thesis/infSetFour.txt",sep='\t',row.names=T,col.names=T)
+infSetFive <- modifiedBagging(as.matrix(readyTrainingSet[,-which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>5.0,3:9]))]),classes,rep=100,stopP=7,stopT2=1000,proportion=.8)
+write.table(infSetFive$repStats,"~/Thesis/infSetFive.txt",sep='\t',row.names=T,col.names=T)
+
 
 
 # Plot when cutoff decided. Need to add lines to indicate cutoff.
