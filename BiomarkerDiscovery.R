@@ -41,7 +41,7 @@ write.table(informativeSet,"~/Thesis/informativeSetDetermine.txt",sep='\t',col.n
 # If needed to be read back in:
 informativeSet <- read.table("~/Thesis/informativeSetDetermine.txt",sep='\t',header=T,row.names=1)
 
-# Find a candidate level for T2 to cutoff at. We'll go from anything not associated with T2 > 2.0 and increment by 0.5 each run.
+# Find a candidate level for T2 to cutoff at. We'll go from anything not associated with T2 > 2.0 and increment cutoff each run.
 # Obtain accuracy estimates from modified bagging for genes not above each cutoff to help make decision.
 infSetTwo <- modifiedBagging(as.matrix(readyTrainingSet[,-which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>2.0,3:9]))]),classes,rep=100,stopP=7,stopT2=1000,proportion=.8)
 write.table(infSetTwo$repStats,"~/Thesis/infSetTwo.txt",sep='\t',row.names=T,col.names=T)
@@ -51,8 +51,8 @@ infSetFour <- modifiedBagging(as.matrix(readyTrainingSet[,-which(colnames(readyT
 write.table(infSetFour$repStats,"~/Thesis/infSetFour.txt",sep='\t',row.names=T,col.names=T)
 infSetFive <- modifiedBagging(as.matrix(readyTrainingSet[,-which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>5.0,3:9]))]),classes,rep=100,stopP=7,stopT2=1000,proportion=.8)
 write.table(infSetFive$repStats,"~/Thesis/infSetFive.txt",sep='\t',row.names=T,col.names=T)
-
-
+# Four and five look pretty similar re: accuracy, etc. so let's go back and see 3.5 cutoff, to see if that may be better than just going with 3 or not.
+infSetThreePointFive <- modifiedBagging(as.matrix(readyTrainingSet[,-which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>3.5,3:9]))]),classes,rep=100,stopP=7,stopT2=1000,proportion=.8)
 
 # Plot when cutoff decided. Need to add lines to indicate cutoff.
 ggplot(informativeSet,aes(x=Index,y=T2))+geom_point()+theme_classic()
