@@ -54,5 +54,20 @@ write.table(infSetFive$repStats,"~/Thesis/infSetFive.txt",sep='\t',row.names=T,c
 # Four and five look pretty similar re: accuracy, etc. so let's go back and see 3.5 cutoff, to see if that may be better than just going with 3 or not.
 infSetThreePointFive <- modifiedBagging(as.matrix(readyTrainingSet[,-which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>3.5,3:9]))]),classes,rep=100,stopP=7,stopT2=1000,proportion=.8)
 
-# Plot when cutoff decided. Need to add lines to indicate cutoff.
-ggplot(informativeSet,aes(x=Index,y=T2))+geom_point()+theme_classic()
+# Multidimensial scaling to 1 dimension to check out separation of classes visually
+checkMds <- dist(readyTrainingSet[,which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>=3.5,3:9]))])
+fit <- cmdscale(checkMds,eig=T,k=1)
+fitPlot <- data.frame(points=fit$points,class=classes)
+fitPlot$Class <- "Healthy"
+fitPlot[fitPlot$class==1,]$Class <- "Tumor"
+ggplot(fitPlot,aes(x=points,y=points,col=Class))+geom_point(size=2.5,alpha=.8)+theme_bw()+xlab("")+ylab("")
+
+checkMdsBelow <- dist(readyTrainingSet[,-which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>=3.5,3:9]))])
+fitBelow <- cmdscale(checkMdsBelow,eig=T,k=1)
+fitBelowPlot <- data.frame(points=fitBelow$points,class=classes)
+fitBelowPlot$Class <- "Healthy"
+fitBelowPlot[fitBelowPlot$class==1,]$Class <- "Tumor"
+ggplot(fitBelowPlot,aes(x=points,y=points,col=Class))+geom_point(size=2.5,alpha=.8)+theme_bw()+xlab("")+ylab("")
+
+# Plot informative set, with line for our cutoff
+ggplot(informativeSet,aes(x=Index,y=T2))+geom_point()+theme_bw()+geom_hline(yintercept=3.5,colour='red',alpha=.8)
