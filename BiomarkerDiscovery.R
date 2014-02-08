@@ -72,8 +72,9 @@ ggplot(fitBelowPlot,aes(x=points,y=points,col=Class))+geom_point(size=2.5,alpha=
 # Plot informative set, with line for our cutoff
 ggplot(informativeSet,aes(x=Index,y=T2))+geom_point()+theme_bw()+geom_hline(yintercept=3.0,colour='red',alpha=.8)
 
-# Get estimates for final informative set of genes now that cutoff decided (1000 modified bagging schema iterations)
-infSetFinal <- modifiedBagging(as.matrix(readyTrainingSet[,which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>3.0,3:9]))]),classes,rep=1000,stopP=7,stopT2=1000,proportion=.8)
+source('findInformativeBagging.R')
+# Get estimates for final informative set of genes now that cutoff decided (1000 modified bagging schema iterations). Store associated variables this time.
+infSetFinal <- findInformativeBagging(as.matrix(readyTrainingSet[,which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>3.0,3:9]))]),classes,rep=1000,stopP=7,stopT2=1000,proportion=.8)
 
 # Get modified bagging estimates for 'non-informative' set of genes
 nonInfSetFinal <- modifiedBagging(as.matrix(readyTrainingSet[,-which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>3.0,3:9]))]),classes,rep=1000,stopP=7,stopT2=1000,proportion=.8)
