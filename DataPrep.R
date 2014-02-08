@@ -26,18 +26,31 @@ castTrainingSet <- read.table("mungedTrainingSet.txt",sep='\t',header=T,check.na
 
 # Remove genes with 0 reads Aligned to them.
 castTrainingSet = castTrainingSet[,colSums(castTrainingSet[,1:NCOL(castTrainingSet)])!=0]
-classes = castTrainingSet$class 
+# Remove genes that don't have any reads mapped for > 25% of either biological class.
+checkGenes <- data.frame(genes=colnames(castTrainingSet),tumorPresentPct=rep(0,length(colnames(castTrainingSet))),healthyPresentPct=rep(0,length(colnames(castTrainingSet))))
+calculateGenes <- data.frame(castTrainingSet>0,check.names=F)
+classes <- castTrainingSet$class 
+calculateGenes$class <- classes
+for(i in 1:NROW(checkGenes)){
+	checkGenes[i,1] <- colnames(calculateGenes)[i]
+	checkGenes[i,2] <- sum(calculateGenes[calculateGenes$class==1,i])/length(classes[classes==1])
+	checkGenes[i,3] <- sum(calculateGenes[calculateGenes$class==0,i])/length(classes[classes==0])
+}
+
+genesToRemove <- checkGenes[checkGenes$tumorPresentPct < .5 & checkGenes$healthyPresentPct < .5,]$genes
 castTrainingSet$class <- NULL
+interTrainingSet <- castTrainingSet[,-which(colnames(castTrainingSet) %in% genesToRemove)]
 
 # Quartile normalize and log2 + counts per million transform.
-transTrainingSet = voom(counts=t(castTrainingSet),normalize.method='quantile',plot=T)
+transTrainingSet = voom(counts=t(interTrainingSet),normalize.method='quantile',plot=F)
 readyTrainingSet = t(transTrainingSet$E)
-colnames(readyTrainingSet) <- colnames(castTrainingSet)
-rownames(readyTrainingSet) <- rownames(castTrainingSet)
+colnames(readyTrainingSet) <- colnames(interTrainingSet)
+rownames(readyTrainingSet) <- rownames(interTrainingSet)
+interTrainingSet <- NULL
 transTrainingSet <- NULL
 
 # Select some random genes for before/after plots.
-set.seed(123)
+set.seed(755)
 randGeneNames = sample(colnames(readyTrainingSet),9)
 
 # Histograms
@@ -48,14 +61,15 @@ ggplot(postGeneExamine,aes(value)) + geom_histogram() + facet_wrap(~ variable) +
 
 # Boxplots - randomly choose samples.
 randSampleNames = sample(rownames(readyTrainingSet),9)
-preGeneExamine = melt(data.frame(barcode=rownames(castTrainingSet[rownames(castTrainingSet) %in% randSampleNames,]),castTrainingSet[rownames(castTrainingSet) %in% randSampleNames,],check.names=F))
+# Just look at those after filtering... but before/after transformation with limma voom.
+preGeneExamine = melt(data.frame(barcode=rownames(castTrainingSet[rownames(castTrainingSet) %in% randSampleNames,which(colnames(castTrainingSet) %in% colnames(readyTrainingSet))]),castTrainingSet[rownames(castTrainingSet) %in% randSampleNames,which(colnames(castTrainingSet) %in% colnames(readyTrainingSet))],check.names=F))
 ggplot(preGeneExamine,aes(factor(barcode),value,fill=factor(barcode))) + geom_boxplot() + ylab("Expected Count of Short Reads Aligned to Gene") + xlab("Sample") + theme_bw() + theme(plot.margin=unit(c(1,1,1,1),'lines'),axis.text.x = element_text(angle=90,hjust=1),legend.position='none') + scale_y_continuous(labels=comma) 
 postGeneExamine = melt(data.frame(barcode=rownames(readyTrainingSet[rownames(readyTrainingSet) %in% randSampleNames,]),readyTrainingSet[rownames(readyTrainingSet) %in% randSampleNames,],check.names=F))
 ggplot(postGeneExamine,aes(factor(barcode),value,fill=factor(barcode))) + stat_boxplot(geom='errorbar') + geom_boxplot() + ylab("Expected Count of Short Reads Aligned to Gene (transformed)") + xlab("Sample") + theme_bw() + theme(plot.margin=unit(c(1,1,1,1),'lines'),axis.text.x = element_text(angle=90,hjust=1),legend.position='none') + scale_y_continuous(labels=comma) 
 
-# Mean vs. Variance plots
+# Mean vs. Variance plots (before and after limma voom)
 options(scipen=999)
-prefiltMeanVar = data.frame(Mean=colMeans(castTrainingSet),Variance=colVars(castTrainingSet))
+prefiltMeanVar = data.frame(Mean=colMeans(castTrainingSet[,which(colnames(castTrainingSet) %in% colnames(readyTrainingSet))]),Variance=colVars(castTrainingSet[,which(colnames(castTrainingSet) %in% colnames(readyTrainingSet))]))
 ggplot(prefiltMeanVar,aes(x=Mean,y=Variance)) + geom_point() + scale_y_continuous(labels=comma) + scale_x_continuous(labels=comma) + theme(axis.title.x=element_text(vjust=-.5),axis.title.y=element_text(vjust=-.05), plot.margin=unit(c(1,1,1,1),'lines')) + theme_bw()
 ggplot(prefiltMeanVar,aes(x=Mean,y=Variance)) + geom_point() + scale_y_continuous(limits=c(0,30000000000),labels=comma) + scale_x_continuous(labels=comma) + theme(axis.title.x=element_text(vjust=-.5),axis.title.y=element_text(vjust=-.05), plot.margin=unit(c(1,1,1,1),'lines')) + theme_bw()
 postfiltMeanVar = data.frame(Mean=colMeans(readyTrainingSet),Variance=colVars(readyTrainingSet))
