@@ -5,6 +5,7 @@ require(scales)
 require(matrixStats)
 require(grid)
 require(limma)
+require(edgeR)
 setwd("~/data/RNASeqV2/UNC__IlluminaHiSeq_RNASeqV2/Level_3/")
 # Load all the TCGA files into one matrixx and transform it for use.
 listFiles = list.files(pattern="*rsem_gene.txt")
@@ -24,9 +25,9 @@ write.table(castTrainingSet,"mungedTrainingSet.txt",sep='\t',col.names=T,row.nam
 # Now can just read from this following statement... instead of performing the above.
 castTrainingSet <- read.table("mungedTrainingSet.txt",sep='\t',header=T,check.names=F,row.names=1)
 
-# Remove genes that don't have any 'detected' reads (>5 reads) mapped for >=50% of either biological class.
+# Keep only genes that have > 50 CPM for 25% or more of biological class (adapted from edgeR filtering example)
 checkGenes <- data.frame(genes=colnames(castTrainingSet),tumorPresentPct=rep(0,length(colnames(castTrainingSet))),healthyPresentPct=rep(0,length(colnames(castTrainingSet))))
-calculateGenes <- data.frame(castTrainingSet>5,check.names=F)
+calculateGenes <- data.frame(t(cpm(t(castTrainingSet))>50),check.names=F)
 classes <- castTrainingSet$class 
 calculateGenes$class <- classes
 for(i in 1:NROW(checkGenes)){
@@ -34,8 +35,7 @@ for(i in 1:NROW(checkGenes)){
 	checkGenes[i,2] <- sum(calculateGenes[calculateGenes$class==1,i])/length(classes[classes==1])
 	checkGenes[i,3] <- sum(calculateGenes[calculateGenes$class==0,i])/length(classes[classes==0])
 }
-
-genesToRemove <- checkGenes[checkGenes$tumorPresentPct < .5 & checkGenes$healthyPresentPct < .5,]$genes
+genesToRemove <- checkGenes[checkGenes$tumorPresentPct < .25 & checkGenes$healthyPresentPct < .25,]$genes
 castTrainingSet$class <- NULL
 interTrainingSet <- castTrainingSet[,-which(colnames(castTrainingSet) %in% genesToRemove)]
 
@@ -48,7 +48,7 @@ interTrainingSet <- NULL
 transTrainingSet <- NULL
 
 # Select some random genes for before/after plots.
-set.seed(333)
+set.seed(313)
 randGeneNames = sample(colnames(readyTrainingSet),9)
 
 # Histograms
@@ -65,7 +65,7 @@ ggplot(preGeneExamine,aes(factor(barcode),value,fill=factor(barcode))) + geom_bo
 postGeneExamine = melt(data.frame(barcode=rownames(readyTrainingSet[rownames(readyTrainingSet) %in% randSampleNames,]),readyTrainingSet[rownames(readyTrainingSet) %in% randSampleNames,],check.names=F))
 ggplot(postGeneExamine,aes(factor(barcode),value,fill=factor(barcode))) + stat_boxplot(geom='errorbar') + geom_boxplot() + ylab("Expected Count of Short Reads Derived from Gene (transformed)") + xlab("Sample") + theme_bw() + theme(plot.margin=unit(c(1,1,1,1),'lines'),axis.text.x = element_text(angle=90,hjust=1),legend.position='none') + scale_y_continuous(labels=comma) 
 
-# Mean vs. Variance plots (before and after limma voom)
+# Mean vs. Variance plots (before and after limma voom, excluding genes filtered out for all plots)
 options(scipen=999)
 prefiltMeanVar = data.frame(Mean=colMeans(castTrainingSet[,which(colnames(castTrainingSet) %in% colnames(readyTrainingSet))]),Variance=colVars(castTrainingSet[,which(colnames(castTrainingSet) %in% colnames(readyTrainingSet))]))
 ggplot(prefiltMeanVar,aes(x=Mean,y=Variance)) + geom_point() + scale_y_continuous(labels=comma) + scale_x_continuous(labels=comma) + theme(axis.title.x=element_text(vjust=-.5),axis.title.y=element_text(vjust=-.05), plot.margin=unit(c(1,1,1,1),'lines')) + theme_bw()
