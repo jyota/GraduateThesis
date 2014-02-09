@@ -24,11 +24,9 @@ write.table(castTrainingSet,"mungedTrainingSet.txt",sep='\t',col.names=T,row.nam
 # Now can just read from this following statement... instead of performing the above.
 castTrainingSet <- read.table("mungedTrainingSet.txt",sep='\t',header=T,check.names=F,row.names=1)
 
-# Remove genes with 0 reads Aligned to them.
-castTrainingSet = castTrainingSet[,colSums(castTrainingSet[,1:NCOL(castTrainingSet)])!=0]
-# Remove genes that don't have any reads mapped for > 25% of either biological class.
+# Remove genes that don't have any 'detected' reads (>5 reads) mapped for >=50% of either biological class.
 checkGenes <- data.frame(genes=colnames(castTrainingSet),tumorPresentPct=rep(0,length(colnames(castTrainingSet))),healthyPresentPct=rep(0,length(colnames(castTrainingSet))))
-calculateGenes <- data.frame(castTrainingSet>0,check.names=F)
+calculateGenes <- data.frame(castTrainingSet>5,check.names=F)
 classes <- castTrainingSet$class 
 calculateGenes$class <- classes
 for(i in 1:NROW(checkGenes)){
@@ -50,22 +48,22 @@ interTrainingSet <- NULL
 transTrainingSet <- NULL
 
 # Select some random genes for before/after plots.
-set.seed(755)
+set.seed(333)
 randGeneNames = sample(colnames(readyTrainingSet),9)
 
 # Histograms
 preGeneExamine = melt(data.frame(barcode=rownames(castTrainingSet),castTrainingSet[,which(colnames(castTrainingSet) %in% randGeneNames)],check.names=F))
-ggplot(preGeneExamine,aes(value)) + geom_histogram() + facet_wrap(~ variable) + ylab("Count") + xlab("Expected Count of Short Reads Aligned to Gene") +  scale_x_continuous(labels=comma) + theme_bw() + theme(axis.text.x = element_text(angle=90,hjust=1)) 
+ggplot(preGeneExamine,aes(value)) + geom_histogram() + facet_wrap(~ variable) + ylab("Count") + xlab("Expected Count of Short Reads Derived from Gene") +  scale_x_continuous(labels=comma) + theme_bw() + theme(axis.text.x = element_text(angle=90,hjust=1)) 
 postGeneExamine = melt(data.frame(barcode=rownames(readyTrainingSet),readyTrainingSet[,which(colnames(readyTrainingSet) %in% randGeneNames)],check.names=F))
-ggplot(postGeneExamine,aes(value)) + geom_histogram() + facet_wrap(~ variable) + ylab("Count") + xlab("Expected Count of Short Reads Aligned to Gene (transformed)") +  scale_x_continuous(labels=comma) + theme_bw() + theme(axis.text.x = element_text(angle=90,hjust=1)) 
+ggplot(postGeneExamine,aes(value)) + geom_histogram() + facet_wrap(~ variable) + ylab("Count") + xlab("Expected Count of Short Reads Derived from Gene (transformed)") +  scale_x_continuous(labels=comma) + theme_bw() + theme(axis.text.x = element_text(angle=90,hjust=1)) 
 
 # Boxplots - randomly choose samples.
 randSampleNames = sample(rownames(readyTrainingSet),9)
 # Just look at those after filtering... but before/after transformation with limma voom.
 preGeneExamine = melt(data.frame(barcode=rownames(castTrainingSet[rownames(castTrainingSet) %in% randSampleNames,which(colnames(castTrainingSet) %in% colnames(readyTrainingSet))]),castTrainingSet[rownames(castTrainingSet) %in% randSampleNames,which(colnames(castTrainingSet) %in% colnames(readyTrainingSet))],check.names=F))
-ggplot(preGeneExamine,aes(factor(barcode),value,fill=factor(barcode))) + geom_boxplot() + ylab("Expected Count of Short Reads Aligned to Gene") + xlab("Sample") + theme_bw() + theme(plot.margin=unit(c(1,1,1,1),'lines'),axis.text.x = element_text(angle=90,hjust=1),legend.position='none') + scale_y_continuous(labels=comma) 
+ggplot(preGeneExamine,aes(factor(barcode),value,fill=factor(barcode))) + geom_boxplot() + ylab("Expected Count of Short Reads Derived from Gene") + xlab("Sample") + theme_bw() + theme(plot.margin=unit(c(1,1,1,1),'lines'),axis.text.x = element_text(angle=90,hjust=1),legend.position='none') + scale_y_continuous(labels=comma) 
 postGeneExamine = melt(data.frame(barcode=rownames(readyTrainingSet[rownames(readyTrainingSet) %in% randSampleNames,]),readyTrainingSet[rownames(readyTrainingSet) %in% randSampleNames,],check.names=F))
-ggplot(postGeneExamine,aes(factor(barcode),value,fill=factor(barcode))) + stat_boxplot(geom='errorbar') + geom_boxplot() + ylab("Expected Count of Short Reads Aligned to Gene (transformed)") + xlab("Sample") + theme_bw() + theme(plot.margin=unit(c(1,1,1,1),'lines'),axis.text.x = element_text(angle=90,hjust=1),legend.position='none') + scale_y_continuous(labels=comma) 
+ggplot(postGeneExamine,aes(factor(barcode),value,fill=factor(barcode))) + stat_boxplot(geom='errorbar') + geom_boxplot() + ylab("Expected Count of Short Reads Derived from Gene (transformed)") + xlab("Sample") + theme_bw() + theme(plot.margin=unit(c(1,1,1,1),'lines'),axis.text.x = element_text(angle=90,hjust=1),legend.position='none') + scale_y_continuous(labels=comma) 
 
 # Mean vs. Variance plots (before and after limma voom)
 options(scipen=999)
