@@ -52,9 +52,12 @@ infSetFour <- modifiedBagging(as.matrix(readyTrainingSet[,-which(colnames(readyT
 write.table(infSetFour$repStats,"~/Thesis/infSetFour.txt",sep='\t',row.names=T,col.names=T)
 infSetFive <- modifiedBagging(as.matrix(readyTrainingSet[,-which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>5.0,3:7]))]),classes,rep=100,stopP=5,stopT2=1000,proportion=.8)
 write.table(infSetFive$repStats,"~/Thesis/infSetFive.txt",sep='\t',row.names=T,col.names=T)
-# Four and five look pretty similar re: accuracy, etc. so let's go back and see 3.5 cutoff, to see if that may be better than just going with 3 or not.
+# Check out more granular cutoffs to see what may be appropriate.
 infSetThreePointFive <- modifiedBagging(as.matrix(readyTrainingSet[,-which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>3.5,3:7]))]),classes,rep=100,stopP=5,stopT2=1000,proportion=.8)
 write.table(infSetThreePointFive$repStats,"~/Thesis/infSetThreePointFive.txt",sep='\t',row.names=T,col.names=T)
+infSetTwoPointFive <- modifiedBagging(as.matrix(readyTrainingSet[,-which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>2.5,3:7]))]),classes,rep=100,stopP=5,stopT2=1000,proportion=.8)
+write.table(infSetTwoPointFive$repStats,"~/Thesis/infSetTwoPointFive.txt",sep='\t',row.names=T,col.names=T)
+
 
 # Multidimensial scaling to 1 dimension to check out separation of classes visually
 checkMds <- dist(readyTrainingSet[,which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>3.0,3:9]))])
