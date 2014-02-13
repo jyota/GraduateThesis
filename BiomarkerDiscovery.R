@@ -55,9 +55,6 @@ write.table(infSetFive$repStats,"~/Thesis/infSetFive.txt",sep='\t',row.names=T,c
 # Check out more granular cutoffs to see what may be appropriate.
 infSetThreePointFive <- modifiedBagging(as.matrix(readyTrainingSet[,-which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>3.5,3:7]))]),classes,rep=100,stopP=5,stopT2=1000,proportion=.8)
 write.table(infSetThreePointFive$repStats,"~/Thesis/infSetThreePointFive.txt",sep='\t',row.names=T,col.names=T)
-infSetTwoPointFive <- modifiedBagging(as.matrix(readyTrainingSet[,-which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>2.5,3:7]))]),classes,rep=100,stopP=5,stopT2=1000,proportion=.8)
-write.table(infSetTwoPointFive$repStats,"~/Thesis/infSetTwoPointFive.txt",sep='\t',row.names=T,col.names=T)
-
 
 # Multidimensial scaling to 1 dimension to check out separation of classes visually
 checkMds <- dist(readyTrainingSet[,which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>3.0,3:9]))])
@@ -74,16 +71,19 @@ fitBelowPlot$Class <- "Healthy"
 fitBelowPlot[fitBelowPlot$class==1,]$Class <- "Tumor"
 ggplot(fitBelowPlot,aes(x=points,y=points,col=Class))+geom_point(size=2.5,alpha=.5)+theme_bw()+xlab("")+ylab("")
 
+informativeSet$Index <- as.numeric(as.character(informativeSet$Index))
 # Plot informative set, with line for our cutoff
-ggplot(informativeSet,aes(x=Index,y=T2))+geom_point()+theme_bw()+geom_hline(yintercept=3.0,colour='red',alpha=.8)
+ggplot(informativeSet,aes(x=Index,y=T2))+geom_point()+theme_bw()+geom_hline(yintercept=4.0,colour='red',alpha=.8)
 
 source('findInformativeBagging.R')
 # Get estimates for final informative set of genes now that cutoff decided (1000 modified bagging schema iterations). Store associated variables this time.
-infSetFinal <- findInformativeBagging(as.matrix(readyTrainingSet[,which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>3.0,3:9]))]),classes,rep=1000,stopP=7,stopT2=1000,proportion=.8)
+infSetFinal <- findInformativeBagging(as.matrix(readyTrainingSet[,which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>4.0,3:7]))]),classes,rep=1000,stopP=5,stopT2=1000,proportion=.8)
 write.table(infSetFinal,"~/Thesis/infSetFinal.txt",sep='\t',row.names=T,col.names=T)
 
 # Check these estimates for entire set of variables (1000 modified bagging schema iterations)
-fullSetFinal <- findInformativeBagging(as.matrix(readyTrainingSet),classes,rep=1000,stopP=7,stopT2=1000,proportion=.8)
+fullSetFinal <- findInformativeBagging(as.matrix(readyTrainingSet),classes,rep=1000,stopP=5,stopT2=1000,proportion=.8)
+write.table(fullSetFinal,"~/Thesis/fullSetFinal.txt",sep='\t',row.names=T,col.names=T)
+
 
 # Get modified bagging estimates for 'non-informative' set of genes
-nonInfSetFinal <- modifiedBagging(as.matrix(readyTrainingSet[,-which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>3.0,3:9]))]),classes,rep=1000,stopP=7,stopT2=1000,proportion=.8)
+nonInfSetFinal <- modifiedBagging(as.matrix(readyTrainingSet[,-which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>4.0,3:7]))]),classes,rep=1000,stopP=5,stopT2=1000,proportion=.8)
