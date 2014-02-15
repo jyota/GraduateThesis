@@ -87,3 +87,4 @@ write.table(fullSetFinal,"~/Thesis/fullSetFinal.txt",sep='\t',row.names=T,col.na
 
 # Get modified bagging estimates for 'non-informative' set of genes
 nonInfSetFinal <- modifiedBagging(as.matrix(readyTrainingSet[,-which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>4.0,3:7]))]),classes,rep=1000,stopP=5,stopT2=1000,proportion=.8)
+write.table(nonInfSetFinal$repStats,"~/Thesis/nonInfSetFinal.txt",sep='\t',row.names=T,col.names=T)
