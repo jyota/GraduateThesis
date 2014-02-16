@@ -124,3 +124,11 @@ finalBiomarker <- hybridFeatureSelection(as.matrix(readyTrainingSet[,which(colna
 biomarkerFit <- lda(class ~ .,data=data.frame(as.matrix(readyTrainingSet[,which(colnames(readyTrainingSet) %in% names(finalBiomarker))]),class=classes,check.names=F))
 # Confusion matrix for training data (just for gut check, not relevant result really)
 table(classes,predict(biomarkerFit,priors=c(.5,.5),data.frame(readyTrainingSet,check.names=F))$class)
+
+# Retrieve biomarker genes from model in case they were lost somehow
+finalBiomarker <- names(attributes(biomarkerFit$terms)$dataClasses)[2:6]
+
+# Intersection of 1,000 modified bagging iteration full training set perfect classifiers and frequent primary genes.
+table(unlist(fullSetFinal[fullSetFinal$Accuracy==1.0,6:10])[unlist(fullSetFinal[fullSetFinal$Accuracy==1.0,6:10]) %in% frequentPrimary])
+# Intersection like the above, but for informative set of genes only.
+table(unlist(infSetFinal[infSetFinal$Accuracy==1.0,6:10])[unlist(infSetFinal[infSetFinal$Accuracy==1.0,6:10]) %in% frequentPrimary])
