@@ -55,36 +55,72 @@ write.table(infSetFive$repStats,"~/Thesis/infSetFive.txt",sep='\t',row.names=T,c
 # Check out more granular cutoffs to see what may be appropriate.
 infSetThreePointFive <- modifiedBagging(as.matrix(readyTrainingSet[,-which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>3.5,3:7]))]),classes,rep=100,stopP=5,stopT2=1000,proportion=.8)
 write.table(infSetThreePointFive$repStats,"~/Thesis/infSetThreePointFive.txt",sep='\t',row.names=T,col.names=T)
+infSetTwoPointSFive <- modifiedBagging(as.matrix(readyTrainingSet[,-which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>2.75,3:7]))]),classes,rep=100,stopP=5,stopT2=1000,proportion=.8)
+write.table(infSetTwoPointSFive$repStats,"~/Thesis/infSetTwoPointSFive.txt",sep='\t',row.names=T,col.names=T)
+infSetTwoPointFive <- modifiedBagging(as.matrix(readyTrainingSet[,-which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>2.5,3:7]))]),classes,rep=100,stopP=5,stopT2=1000,proportion=.8)
+write.table(infSetTwoPointFive$repStats,"~/Thesis/infSetTwoPointFive.txt",sep='\t',row.names=T,col.names=T)
 
-# Multidimensial scaling to 1 dimension to check out separation of classes visually
-checkMds <- dist(readyTrainingSet[,which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>3.0,3:9]))])
-fit <- cmdscale(checkMds,eig=T,k=1)
-fitPlot <- data.frame(points=fit$points,class=classes)
-fitPlot$Class <- "Healthy"
-fitPlot[fitPlot$class==1,]$Class <- "Tumor"
-ggplot(fitPlot,aes(x=points,y=points,col=Class))+geom_point(size=2.5,alpha=.5)+theme_bw()+xlab("")+ylab("")
-
-checkMdsBelow <- dist(readyTrainingSet[,-which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>3.0,3:9]))])
-fitBelow <- cmdscale(checkMdsBelow,eig=T,k=1)
-fitBelowPlot <- data.frame(points=fitBelow$points,class=classes)
-fitBelowPlot$Class <- "Healthy"
-fitBelowPlot[fitBelowPlot$class==1,]$Class <- "Tumor"
-ggplot(fitBelowPlot,aes(x=points,y=points,col=Class))+geom_point(size=2.5,alpha=.5)+theme_bw()+xlab("")+ylab("")
-
-informativeSet$Index <- as.numeric(as.character(informativeSet$Index))
 # Plot informative set, with line for our cutoff
+informativeSet$Index <- as.numeric(as.character(informativeSet$Index))
 ggplot(informativeSet,aes(x=Index,y=T2))+geom_point()+theme_bw()+geom_hline(yintercept=4.0,colour='red',alpha=.8)
+
 
 source('findInformativeBagging.R')
 # Get estimates for final informative set of genes now that cutoff decided (1000 modified bagging schema iterations). Store associated variables this time.
 infSetFinal <- findInformativeBagging(as.matrix(readyTrainingSet[,which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>4.0,3:7]))]),classes,rep=1000,stopP=5,stopT2=1000,proportion=.8)
 write.table(infSetFinal,"~/Thesis/infSetFinal.txt",sep='\t',row.names=T,col.names=T)
 
+# Show 'discriminatory space' for LDA classifier from informative set
+infBiomarker <- hybridFeatureSelection(as.matrix(readyTrainingSet[,which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>4.0,3:7]))]),classes,stopP=5,stopT2=1000)
+# Fit an LDA model with biomarker variables
+infFit <- lda(class ~ .,data=data.frame(as.matrix(readyTrainingSet[,which(colnames(readyTrainingSet) %in% names(infBiomarker))]),class=classes,check.names=F))
+infPredFit <- predict(infFit, data.frame(readyTrainingSet,check.names=F))
+infPlotFit <- data.frame(LD1=infPredFit$x,pred_class=infPredFit$class,actual_class=classes)
+infPlotFit$Class <- 'Healthy'
+infPlotFit[infPlotFit$actual_class==1,]$Class <- 'Tumor'
+ggplot(infPlotFit,aes(LD1,fill=Class))+geom_density(alpha=.8)+theme_bw()+xlab('Discriminant Score')
+
 # Check these estimates for entire set of variables (1000 modified bagging schema iterations)
 fullSetFinal <- findInformativeBagging(as.matrix(readyTrainingSet),classes,rep=1000,stopP=5,stopT2=1000,proportion=.8)
 write.table(fullSetFinal,"~/Thesis/fullSetFinal.txt",sep='\t',row.names=T,col.names=T)
 
-
 # Get modified bagging estimates for 'non-informative' set of genes
 nonInfSetFinal <- modifiedBagging(as.matrix(readyTrainingSet[,-which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>4.0,3:7]))]),classes,rep=1000,stopP=5,stopT2=1000,proportion=.8)
 write.table(nonInfSetFinal$repStats,"~/Thesis/nonInfSetFinal.txt",sep='\t',row.names=T,col.names=T)
+
+# Show 'discriminatory space' for LDA classifier NOT from informative set
+infBiomarker <- hybridFeatureSelection(as.matrix(readyTrainingSet[,-which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>4.0,3:7]))]),classes,stopP=5,stopT2=1000)
+# Fit an LDA model with biomarker variables
+infFit <- lda(class ~ .,data=data.frame(as.matrix(readyTrainingSet[,which(colnames(readyTrainingSet) %in% names(infBiomarker))]),class=classes,check.names=F))
+infPredFit <- predict(infFit, data.frame(readyTrainingSet,check.names=F))
+infPlotFit <- data.frame(LD1=infPredFit$x,pred_class=infPredFit$class,actual_class=classes)
+infPlotFit$Class <- 'Healthy'
+infPlotFit[infPlotFit$actual_class==1,]$Class <- 'Tumor'
+ggplot(infPlotFit,aes(LD1,fill=Class))+geom_density(alpha=.8)+theme_bw()+xlab('Discriminant Score')
+
+
+# Cluster by Pearson's correlation distance 
+require(Hmisc)
+clustResult <- varclus(readyTrainingSet[,which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>4.0,3:7]))],similarity='pearson',method='complete')
+memb <- cutree(clustResult$hclust,k=10)
+clusteringResult <- data.frame(cluster=seq(1:10),size=rep(0,10),use=rep(0,10),avg_use=rep(0,10))
+for(i in 1:10){
+	clusteringResult[i,]$size <- table(memb)[i]
+	clusteringResult[i,]$use <- sum(table(unlist(infSetFinal[infSetFinal$Accuracy==1,6:10]))[names(table(unlist(infSetFinal[infSetFinal$Accuracy==1,6:10]))) %in% names(memb[memb==i])])
+}
+clusteringResult$avg_use <- clusteringResult$use / clusteringResult$size
+
+# Identify frequently used genes -- those that are in at least 1% of OOB classifiers in informative set of genes modified bagging classifiers.
+q <- table(unlist(infSetFinal[infSetFinal$Accuracy==1,6:10]))/1000.0
+frequentlyUsed <- q[q>=0.01]
+# Frequent primaries will be those from frequentlyUsed that also are in clusters with >=15% average use
+frequentPrimary <- names(frequentlyUsed)[names(frequentlyUsed) %in% names(memb[memb %in% c(clusteringResult[clusteringResult$avg_use>15.0,]$cluster)])]
+# These intersect with those used in perfect OOB classifiers for full training set.
+frequentPrimary[frequentPrimary %in% unlist(fullSetFinal[fullSetFinal$Accuracy==1,6:10])]
+
+finalBiomarker <- hybridFeatureSelection(as.matrix(readyTrainingSet[,which(colnames(readyTrainingSet) %in% frequentPrimary)]),classes,stopP=5,stopT2=1000)
+
+# Fit an LDA model with biomarker variables
+biomarkerFit <- lda(class ~ .,data=data.frame(as.matrix(readyTrainingSet[,which(colnames(readyTrainingSet) %in% names(finalBiomarker))]),class=classes,check.names=F))
+# Confusion matrix for training data (just for gut check, not relevant result really)
+table(classes,predict(biomarkerFit,priors=c(.5,.5),data.frame(readyTrainingSet,check.names=F))$class)
