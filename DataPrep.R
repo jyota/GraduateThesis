@@ -23,14 +23,15 @@ castTrainingSet$barcode <- NULL
 write.table(castTrainingSet,"mungedTrainingSet.txt",sep='\t',col.names=T,row.names=T)
 
 # Now can just read from this following statement... instead of performing the above.
-castTrainingSet <- read.table("mungedTrainingSet.txt",sep='\t',header=T,check.names=F,row.names=1)
+castTrainingSet <- read.table("~/Thesis/mungedTrainingSet.txt",sep='\t',header=T,check.names=F,row.names=1)
 
 # Keep only genes that have > 50 CPM for 25% or more of biological class (adapted from limma & edgeR filtering example, where > 1CPM to > 100CPM are used)
 # Evidence from NOISeq study showing parametric methods may unreliably show very low expressed genes as DE...)
 # Want to ensure genes are reliably expressed in at least one biological class. CPM cutoff decisions seem rather arbitrary though.
+classes <- castTrainingSet$class 
+castTrainingSet$class <- NULL
 checkGenes <- data.frame(genes=colnames(castTrainingSet),tumorPresentPct=rep(0,length(colnames(castTrainingSet))),healthyPresentPct=rep(0,length(colnames(castTrainingSet))))
 calculateGenes <- data.frame(t(cpm(t(castTrainingSet))>50),check.names=F)
-classes <- castTrainingSet$class 
 calculateGenes$class <- classes
 for(i in 1:NROW(checkGenes)){
 	checkGenes[i,1] <- colnames(calculateGenes)[i]
@@ -38,7 +39,6 @@ for(i in 1:NROW(checkGenes)){
 	checkGenes[i,3] <- sum(calculateGenes[calculateGenes$class==0,i])/length(classes[classes==0])
 }
 genesToRemove <- checkGenes[checkGenes$tumorPresentPct < .25 & checkGenes$healthyPresentPct < .25,]$genes
-castTrainingSet$class <- NULL
 interTrainingSet <- castTrainingSet[,-which(colnames(castTrainingSet) %in% genesToRemove)]
 
 # Quartile normalize and log2 + counts per million transform.
