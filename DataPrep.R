@@ -25,7 +25,9 @@ write.table(castTrainingSet,"mungedTrainingSet.txt",sep='\t',col.names=T,row.nam
 # Now can just read from this following statement... instead of performing the above.
 castTrainingSet <- read.table("mungedTrainingSet.txt",sep='\t',header=T,check.names=F,row.names=1)
 
-# Keep only genes that have > 50 CPM for 25% or more of biological class (adapted from edgeR filtering example)
+# Keep only genes that have > 50 CPM for 25% or more of biological class (adapted from limma & edgeR filtering example, where > 1CPM to > 100CPM are used)
+# Evidence from NOISeq study showing parametric methods may unreliably show very low expressed genes as DE...)
+# Want to ensure genes are reliably expressed in at least one biological class. CPM cutoff decisions seem rather arbitrary though.
 checkGenes <- data.frame(genes=colnames(castTrainingSet),tumorPresentPct=rep(0,length(colnames(castTrainingSet))),healthyPresentPct=rep(0,length(colnames(castTrainingSet))))
 calculateGenes <- data.frame(t(cpm(t(castTrainingSet))>50),check.names=F)
 classes <- castTrainingSet$class 
