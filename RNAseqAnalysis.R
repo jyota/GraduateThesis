@@ -41,3 +41,30 @@ maxVarPlot <- data.frame(gene=c(rep(niGenes[1],length(classes)),rep(niGenes[2],l
 maxVarPlot$Class <- 'Tumor'
 maxVarPlot[maxVarPlot$class==0,]$Class <- 'Healthy'
 ggplot(maxVarPlot,aes(value,fill=Class))+geom_density(alpha=.8)+theme_bw()+scale_x_continuous(labels=comma)+facet_wrap(~ gene)+theme(axis.text.x=element_text(angle=90))+labs(fill='Class')+xlab('')
+
+# Now do the same for the informative set, except check smallest variances to see if 'inflation' happened.
+InfVars <- cmpVars[cmpVars$setOfVars=='Informative Set',]
+InfVars <- InfVars[order(InfVars$variance,decreasing=F),]
+niGenes <- rownames(InfVars)[1:4]
+maxVarPlot <- data.frame(gene=c(rep(niGenes[1],length(classes)),rep(niGenes[2],length(classes)),
+	rep(niGenes[3],length(classes)),rep(niGenes[4],length(classes))),
+    class=c(rep(classes,4)),value=c(castTrainingSet[,which(colnames(castTrainingSet) %in% niGenes[1])],
+    	castTrainingSet[,which(colnames(castTrainingSet) %in% niGenes[2])],castTrainingSet[,which(colnames(castTrainingSet) %in% niGenes[3])],
+    	castTrainingSet[,which(colnames(castTrainingSet) %in% niGenes[4])]))
+
+maxVarPlot$Class <- 'Tumor'
+maxVarPlot[maxVarPlot$class==0,]$Class <- 'Healthy'
+ggplot(maxVarPlot,aes(value,fill=Class))+geom_density(alpha=.8)+theme_bw()+scale_x_continuous(labels=comma)+facet_wrap(~ gene)+theme(axis.text.x=element_text(angle=90))+labs(fill='Class')+xlab('')
+
+InfVars <- cmpVars[cmpVars$setOfVars=='Informative Set',]
+InfVars <- InfVars[order(InfVars$variance,decreasing=F),]
+niGenes <- rownames(InfVars)[1:4]
+maxVarPlot <- data.frame(gene=c(rep(niGenes[1],length(classes)),rep(niGenes[2],length(classes)),
+	rep(niGenes[3],length(classes)),rep(niGenes[4],length(classes))),
+    class=c(rep(classes,4)),value=c(readyTrainingSet[,which(colnames(readyTrainingSet) %in% niGenes[1])],
+    	readyTrainingSet[,which(colnames(readyTrainingSet) %in% niGenes[2])],readyTrainingSet[,which(colnames(readyTrainingSet) %in% niGenes[3])],
+    	readyTrainingSet[,which(colnames(readyTrainingSet) %in% niGenes[4])]))
+
+maxVarPlot$Class <- 'Tumor'
+maxVarPlot[maxVarPlot$class==0,]$Class <- 'Healthy'
+ggplot(maxVarPlot,aes(value,fill=Class))+geom_density(alpha=.8)+theme_bw()+scale_x_continuous(labels=comma)+facet_wrap(~ gene)+theme(axis.text.x=element_text(angle=90))+labs(fill='Class')+xlab('')
