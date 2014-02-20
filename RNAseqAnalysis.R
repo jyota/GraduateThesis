@@ -13,3 +13,15 @@ y <- colVars(interTrainingSet[,-which(colnames(interTrainingSet) %in% unlist(inf
 cmpVars <- data.frame(variance=c(x,y),setOfVars=c(rep("Informative Set",length(x)),rep("Noninformative Set",length(y))))
 # Now the 'non-informative' gene set box plot shifted up. This indicates the transformation variance may have influenced the parametric based gene selection.
 ggplot(cmpVars,aes(y=variance,x=setOfVars,fill=setOfVars))+stat_boxplot(geom='errorbar')+geom_boxplot()+theme_bw()+guides(fill=FALSE)+ylab("Variance")+xlab("")+coord_cartesian(ylim=c(0,80000000))+scale_y_continuous(labels=comma)
+
+# Plot maximum variance genes class separation prior to transform non informative set
+nonInfVars <- cmpVars[cmpVars$setOfVars=='Noninformative Set',]
+nonInfVars <- nonInfVars[order(nonInfVars$variance,decreasing=T),]
+niGenes <- rownames(nonInfVars)[1:4]
+maxVarPlot <- data.frame(gene=c(rep(niGenes[1],length(classes)),rep(niGenes[2],length(classes)),
+	rep(niGenes[3],length(classes)),rep(niGenes[4],length(classes))),
+    class=c(rep(classes,4)),value=c(castTrainingSet[,which(colnames(castTrainingSet) %in% niGenes[1])],
+    	castTrainingSet[,which(colnames(castTrainingSet) %in% niGenes[2])],castTrainingSet[,which(colnames(castTrainingSet) %in% niGenes[3])],
+    	castTrainingSet[,which(colnames(castTrainingSet) %in% niGenes[4])]))
+
+ggplot(maxVarPlot,aes(value,fill=factor(class)))+geom_density(alpha=.8)+theme_bw()+scale_x_continuous(labels=comma)+facet_wrap(~ gene)+theme(axis.text.x=element_text(angle=90))+labs(fill='Class')+xlab('')
