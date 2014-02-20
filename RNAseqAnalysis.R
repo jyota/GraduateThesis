@@ -24,4 +24,20 @@ maxVarPlot <- data.frame(gene=c(rep(niGenes[1],length(classes)),rep(niGenes[2],l
     	castTrainingSet[,which(colnames(castTrainingSet) %in% niGenes[2])],castTrainingSet[,which(colnames(castTrainingSet) %in% niGenes[3])],
     	castTrainingSet[,which(colnames(castTrainingSet) %in% niGenes[4])]))
 
-ggplot(maxVarPlot,aes(value,fill=factor(class)))+geom_density(alpha=.8)+theme_bw()+scale_x_continuous(labels=comma)+facet_wrap(~ gene)+theme(axis.text.x=element_text(angle=90))+labs(fill='Class')+xlab('')
+maxVarPlot$Class <- 'Tumor'
+maxVarPlot[maxVarPlot$class==0,]$Class <- 'Healthy'
+ggplot(maxVarPlot,aes(value,fill=Class))+geom_density(alpha=.8)+theme_bw()+scale_x_continuous(labels=comma)+facet_wrap(~ gene)+theme(axis.text.x=element_text(angle=90))+labs(fill='Class')+xlab('')
+
+# Check out post transform plot of these
+nonInfVars <- cmpVars[cmpVars$setOfVars=='Noninformative Set',]
+nonInfVars <- nonInfVars[order(nonInfVars$variance,decreasing=T),]
+niGenes <- rownames(nonInfVars)[1:4]
+maxVarPlot <- data.frame(gene=c(rep(niGenes[1],length(classes)),rep(niGenes[2],length(classes)),
+	rep(niGenes[3],length(classes)),rep(niGenes[4],length(classes))),
+    class=c(rep(classes,4)),value=c(readyTrainingSet[,which(colnames(readyTrainingSet) %in% niGenes[1])],
+    	readyTrainingSet[,which(colnames(readyTrainingSet) %in% niGenes[2])],readyTrainingSet[,which(colnames(readyTrainingSet) %in% niGenes[3])],
+    	readyTrainingSet[,which(colnames(readyTrainingSet) %in% niGenes[4])]))
+
+maxVarPlot$Class <- 'Tumor'
+maxVarPlot[maxVarPlot$class==0,]$Class <- 'Healthy'
+ggplot(maxVarPlot,aes(value,fill=Class))+geom_density(alpha=.8)+theme_bw()+scale_x_continuous(labels=comma)+facet_wrap(~ gene)+theme(axis.text.x=element_text(angle=90))+labs(fill='Class')+xlab('')
