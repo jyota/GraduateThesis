@@ -25,13 +25,15 @@ write.table(castTrainingSet,"mungedTrainingSet.txt",sep='\t',col.names=T,row.nam
 # Now can just read from this following statement... instead of performing the above.
 castTrainingSet <- read.table("~/Thesis/mungedTrainingSet.txt",sep='\t',header=T,check.names=F,row.names=1)
 
-# Keep only genes that have > 50 CPM for 25% or more of biological class (adapted from limma & edgeR filtering example, where > 1CPM to > 100CPM are used)
-# Evidence from NOISeq study showing parametric methods may unreliably show very low expressed genes as DE...)
-# Want to ensure genes are reliably expressed in at least one biological class. CPM cutoff decisions seem rather arbitrary though.
+# Revising the data preparation... with Upper quartile normalization then log2 transform. Filtering those with < 50 
 classes <- castTrainingSet$class 
 castTrainingSet$class <- NULL
-checkGenes <- data.frame(genes=colnames(castTrainingSet),tumorPresentPct=rep(0,length(colnames(castTrainingSet))),healthyPresentPct=rep(0,length(colnames(castTrainingSet))))
-calculateGenes <- data.frame(t(cpm(t(castTrainingSet))>50),check.names=F)
+checkTrainingSet <- round(castTrainingSet,0)
+checkTrainingSet <- checkTrainingSet[,colSums(checkTrainingSet)>0]
+vTraining <- uqua(t(checkTrainingSet),k=1)
+
+checkGenes <- data.frame(genes=colnames(vTraining),tumorPresentPct=rep(0,length(colnames(vTraining))),healthyPresentPct=rep(0,length(colnames(vTraining))))
+calculateGenes <- data.frame(vTraining>50),check.names=F)
 calculateGenes$class <- classes
 for(i in 1:NROW(checkGenes)){
 	checkGenes[i,1] <- colnames(calculateGenes)[i]
@@ -41,16 +43,10 @@ for(i in 1:NROW(checkGenes)){
 genesToRemove <- checkGenes[checkGenes$tumorPresentPct < .25 & checkGenes$healthyPresentPct < .25,]$genes
 interTrainingSet <- castTrainingSet[,-which(colnames(castTrainingSet) %in% genesToRemove)]
 
-# Quartile normalize and log2 + counts per million transform.
-transTrainingSet = voom(counts=t(interTrainingSet),normalize.method='quantile',plot=F)
-readyTrainingSet = t(transTrainingSet$E)
-colnames(readyTrainingSet) <- colnames(interTrainingSet)
-rownames(readyTrainingSet) <- rownames(interTrainingSet)
-interTrainingSet <- NULL
-transTrainingSet <- NULL
+readyTrainingSet <- t(log2(vTraining+1.0))
 
 # Select some random genes for before/after plots.
-set.seed(313)
+set.seed(323)
 randGeneNames = sample(colnames(readyTrainingSet),9)
 
 # Histograms
