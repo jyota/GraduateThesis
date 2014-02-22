@@ -30,10 +30,10 @@ classes <- castTrainingSet$class
 castTrainingSet$class <- NULL
 checkTrainingSet <- round(castTrainingSet,0)
 checkTrainingSet <- checkTrainingSet[,colSums(checkTrainingSet)>0]
-vTraining <- uqua(t(checkTrainingSet),k=1)
+vTraining <- t(uqua(t(checkTrainingSet),k=1))
 
 checkGenes <- data.frame(genes=colnames(vTraining),tumorPresentPct=rep(0,length(colnames(vTraining))),healthyPresentPct=rep(0,length(colnames(vTraining))))
-calculateGenes <- data.frame(vTraining>50),check.names=F)
+calculateGenes <- data.frame(vTraining>50,check.names=F)
 calculateGenes$class <- classes
 for(i in 1:NROW(checkGenes)){
 	checkGenes[i,1] <- colnames(calculateGenes)[i]
@@ -41,9 +41,9 @@ for(i in 1:NROW(checkGenes)){
 	checkGenes[i,3] <- sum(calculateGenes[calculateGenes$class==0,i])/length(classes[classes==0])
 }
 genesToRemove <- checkGenes[checkGenes$tumorPresentPct < .25 & checkGenes$healthyPresentPct < .25,]$genes
-interTrainingSet <- castTrainingSet[,-which(colnames(castTrainingSet) %in% genesToRemove)]
+interTrainingSet <- vTraining[,-which(colnames(vTraining) %in% genesToRemove)]
 
-readyTrainingSet <- t(log2(vTraining+1.0))
+readyTrainingSet <- log2(interTrainingSet+1.0)
 
 # Select some random genes for before/after plots.
 set.seed(323)
