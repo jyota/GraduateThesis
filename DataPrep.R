@@ -6,6 +6,7 @@ require(matrixStats)
 require(grid)
 require(limma)
 require(edgeR)
+require(NOISeq)
 setwd("~/data/RNASeqV2/UNC__IlluminaHiSeq_RNASeqV2/Level_3/")
 # Load all the TCGA files into one matrixx and transform it for use.
 listFiles = list.files(pattern="*rsem_gene.txt")
@@ -31,7 +32,6 @@ castTrainingSet$class <- NULL
 checkTrainingSet <- round(castTrainingSet,0)
 checkTrainingSet <- checkTrainingSet[,colSums(checkTrainingSet)>0]
 vTraining <- t(uqua(t(checkTrainingSet),k=1))
-
 checkGenes <- data.frame(genes=colnames(vTraining),tumorPresentPct=rep(0,length(colnames(vTraining))),healthyPresentPct=rep(0,length(colnames(vTraining))))
 calculateGenes <- data.frame(vTraining>50,check.names=F)
 calculateGenes$class <- classes
@@ -42,7 +42,6 @@ for(i in 1:NROW(checkGenes)){
 }
 genesToRemove <- checkGenes[checkGenes$tumorPresentPct < .25 & checkGenes$healthyPresentPct < .25,]$genes
 interTrainingSet <- vTraining[,-which(colnames(vTraining) %in% genesToRemove)]
-
 readyTrainingSet <- log2(interTrainingSet+1.0)
 
 # Select some random genes for before/after plots.
