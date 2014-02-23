@@ -7,6 +7,7 @@ require(grid)
 require(limma)
 require(edgeR)
 require(NOISeq)
+require(DESeq2)
 setwd("~/data/RNASeqV2/UNC__IlluminaHiSeq_RNASeqV2/Level_3/")
 # Load all the TCGA files into one matrixx and transform it for use.
 listFiles = list.files(pattern="*rsem_gene.txt")
@@ -43,6 +44,10 @@ for(i in 1:NROW(checkGenes)){
 genesToRemove <- checkGenes[checkGenes$tumorPresentPct < .25 & checkGenes$healthyPresentPct < .25,]$genes
 interTrainingSet <- vTraining[,-which(colnames(vTraining) %in% genesToRemove)]
 readyTrainingSet <- log2(interTrainingSet+1.0)
+
+# Check out DESeq2's rlog transform.. not sure how to describe it so probably won't actually use for this thesis anyway.
+q = DESeqDataSetFromMatrix(countData=as.matrix(t(checkTrainingSet)),colData=data.frame(class=classes),design=~ class)
+rlogq = rlogTransformation(q,blind=T)
 
 # Select some random genes for before/after plots.
 set.seed(323)
