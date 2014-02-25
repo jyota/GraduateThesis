@@ -30,9 +30,7 @@ castTrainingSet <- read.table("~/Thesis/mungedTrainingSet.txt",sep='\t',header=T
 # Revising the data preparation... with Upper quartile normalization then log2 transform. Filtering those with < 50 
 classes <- castTrainingSet$class 
 castTrainingSet$class <- NULL
-checkTrainingSet <- round(castTrainingSet,0)
-checkTrainingSet <- checkTrainingSet[,colSums(checkTrainingSet)>0]
-vTraining <- t(uqua(t(checkTrainingSet),k=1))
+vTraining <- t(uqua(t(castTrainingSet),k=0))
 checkGenes <- data.frame(genes=colnames(vTraining),tumorPresentPct=rep(0,length(colnames(vTraining))),healthyPresentPct=rep(0,length(colnames(vTraining))))
 calculateGenes <- data.frame(vTraining>50,check.names=F)
 calculateGenes$class <- classes
