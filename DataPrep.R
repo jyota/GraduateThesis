@@ -4,9 +4,6 @@ require(reshape)
 require(scales)
 require(matrixStats)
 require(grid)
-require(limma)
-require(edgeR)
-require(NOISeq)
 require(DESeq2)
 setwd("~/data/RNASeqV2/UNC__IlluminaHiSeq_RNASeqV2/Level_3/")
 # Load all the TCGA files into one matrixx and transform it for use.
@@ -30,7 +27,8 @@ castTrainingSet <- read.table("~/Thesis/mungedTrainingSet.txt",sep='\t',header=T
 # Revising the data preparation... with Upper quartile normalization then log2 transform. Filtering those with < 50 
 classes <- castTrainingSet$class 
 castTrainingSet$class <- NULL
-vTraining <- t(uqua(t(castTrainingSet),k=0))
+source('~/Thesis/upperQuartileNormalize.R')
+vTraining <- t(upperQuartileNormalize(t(castTrainingSet)))
 checkGenes <- data.frame(genes=colnames(vTraining),tumorPresentPct=rep(0,length(colnames(vTraining))),healthyPresentPct=rep(0,length(colnames(vTraining))))
 calculateGenes <- data.frame(vTraining>50,check.names=F)
 calculateGenes$class <- classes
