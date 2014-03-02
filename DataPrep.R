@@ -78,3 +78,23 @@ castTrainingSet <- NULL
 trainingSet <- NULL
 
 
+# Interact with NCBI's SRA db to get metadata for independent test data set.
+require(SRAdb)
+sqlfile <- getSRAdbFile()
+sraCon <- dbConnect(SQLite(),sqlfile)
+# Get all accession identifiers for the independent test data set.
+conversion <- sraConvert(c('ERP001058'),sra_con=sraCon)
+conversion$description <- "placeholder"
+for(i in 1:NROW(conversion)){
+	rs <- dbGetQuery(sraCon,paste("SELECT * FROM sample WHERE sample_accession='",conversion[i,]$sample,"'",sep=''))
+	conversion[i,]$description <- rs$description
+}
+
+# Remove runs with unreleased data.
+conversion <- conversion[!(conversion$run %in% c('ERR058695','ERR318894','ERR318891','ERR318895','ERR318892','ERR318893')),]
+# Class is 1 for tumor, 0 for healthy/normal
+conversion$class <- 1
+# Parse description to mark the normal biological samples.
+conversion[grepl('apparently_normal',conversion$description),]$class <- 0
+# These results will eventually be joined to the filenames of independent data set to get biological class indicator.
+# Will need to resolve how to handle more than one run for a given sample...
