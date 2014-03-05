@@ -29,18 +29,16 @@ classes <- castTrainingSet$class
 castTrainingSet$class <- NULL
 source('~/Thesis/upperQuartileNormalize.R')
 vTraining <- t(upperQuartileNormalize(t(castTrainingSet)))
-checkGenes <- data.frame(genes=colnames(vTraining),tumorPresent=rep(0,length(colnames(vTraining))),healthyPresent=rep(0,length(colnames(vTraining))))
+checkGenes <- data.frame(genes=colnames(vTraining),present=rep(0,length(colnames(vTraining))))
 checkGenes$genes <- as.character(checkGenes$genes)
-calculateGenes <- data.frame(cpm(t(vTraining))>25,check.names=F)
+calculateGenes <- data.frame(cpm(t(vTraining))>=50.0,check.names=F)
 calculateGenes <- t(calculateGenes)
-calculateGenes <- data.frame(calculateGenes,class=classes,check.names=F)
 for(i in 1:NROW(checkGenes)){
 	checkGenes[i,1] <- colnames(calculateGenes)[i]
-	checkGenes[i,2] <- sum(calculateGenes[calculateGenes$class==1,i])/length(classes[classes==1])
-	checkGenes[i,3] <- sum(calculateGenes[calculateGenes$class==0,i])/length(classes[classes==0])
+	checkGenes[i,2] <- sum(calculateGenes[,i])
 }
-# Remove genes that don't have at least 25 cpm after scaling in at least 50% of one biological class.
-genesToRemove <- checkGenes[checkGenes$tumorPresent < .5 & checkGenes$healthyPresent < .5,]$genes
+# Remove genes that don't meet the cpm filter criteria without considering class but w/# samples at least as large as one of the biological classes.
+genesToRemove <- checkGenes[checkGenes$present < 57,]$genes
 interTrainingSet <- vTraining[,-which(colnames(vTraining) %in% genesToRemove)]
 readyTrainingSet <- log2(interTrainingSet+1.0)
 
