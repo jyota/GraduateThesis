@@ -24,7 +24,7 @@ write.table(castTrainingSet,"mungedTrainingSet.txt",sep='\t',col.names=T,row.nam
 # Now can just read from this following statement... instead of performing the above.
 castTrainingSet <- read.table("~/Thesis/mungedTrainingSet.txt",sep='\t',header=T,check.names=F,row.names=1)
 
-# Revising the data preparation... with Upper quartile normalization then log2 transform. Filtering those with <= 25 cpm after scaling.
+# Revising the data preparation... with Upper quartile normalization then log2 transform. Filtering based on cpm in <50% of size of smallest biological class.
 classes <- castTrainingSet$class 
 castTrainingSet$class <- NULL
 source('~/Thesis/upperQuartileNormalize.R')
@@ -37,8 +37,7 @@ for(i in 1:NROW(checkGenes)){
 	checkGenes[i,1] <- colnames(calculateGenes)[i]
 	checkGenes[i,2] <- sum(calculateGenes[,i])
 }
-# Remove genes that don't meet the cpm filter criteria without considering class but w/# samples at least as large as one of the biological classes.
-genesToRemove <- checkGenes[checkGenes$present < 57,]$genes
+genesToRemove <- checkGenes[checkGenes$present < 29,]$genes
 interTrainingSet <- vTraining[,-which(colnames(vTraining) %in% genesToRemove)]
 readyTrainingSet <- log2(interTrainingSet+1.0)
 
