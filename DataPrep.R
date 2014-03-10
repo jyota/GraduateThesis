@@ -29,16 +29,20 @@ classes <- castTrainingSet$class
 castTrainingSet$class <- NULL
 source('~/Thesis/upperQuartileNormalize.R')
 vTraining <- t(upperQuartileNormalize(t(castTrainingSet)))
-checkGenes <- data.frame(genes=colnames(vTraining),present=rep(0,length(colnames(vTraining))))
+zTraining <- vTraining[,colSums(vTraining)!=0]
+checkGenes <- data.frame(genes=colnames(zTraining),tumorPresent=rep(0,length(colnames(zTraining))),healthyPresent=rep(0,length(colnames(zTraining))))
 checkGenes$genes <- as.character(checkGenes$genes)
-calculateGenes <- data.frame(cpm(t(vTraining))>=50.0,check.names=F)
-calculateGenes <- t(calculateGenes)
+cutOff <- round((max(apply(cpm(t(zTraining)),2,mean,trim=0.02))+min(apply(cpm(t(zTraining)),2,mean,trim=0.02)))/2.0,0)
+calculateGenes <- data.frame(cpm(t(zTraining))>=cutOff,check.names=F)
+calculateGenes <- data.frame(t(calculateGenes),check.names=F)
+calculateGenes$class <- classes
 for(i in 1:NROW(checkGenes)){
 	checkGenes[i,1] <- colnames(calculateGenes)[i]
-	checkGenes[i,2] <- sum(calculateGenes[,i])
+	checkGenes[i,2] <- sum(calculateGenes[calculateGenes$class==1,i])/length(classes[classes==1])
+	checkGenes[i,3] <- sum(calculateGenes[calculateGenes$class==0,i])/length(classes[classes==0])	
 }
-genesToRemove <- checkGenes[checkGenes$present < 29,]$genes
-interTrainingSet <- vTraining[,-which(colnames(vTraining) %in% genesToRemove)]
+genesToRemove <- checkGenes[checkGenes$tumorPresent < 0.2 & checkGenes$healthyPresent < 0.2,]$genes
+interTrainingSet <- zTraining[,-which(colnames(zTraining) %in% genesToRemove)]
 readyTrainingSet <- log2(interTrainingSet+1.0)
 
 # Select some random genes for before/after plots.
