@@ -38,10 +38,10 @@ calculateGenes <- data.frame(t(calculateGenes),check.names=F)
 calculateGenes$class <- classes
 for(i in 1:NROW(checkGenes)){
 	checkGenes[i,1] <- colnames(calculateGenes)[i]
-	checkGenes[i,2] <- sum(calculateGenes[calculateGenes$class==1,i])/length(classes[classes==1])
-	checkGenes[i,3] <- sum(calculateGenes[calculateGenes$class==0,i])/length(classes[classes==0])	
+	checkGenes[i,2] <- sum(calculateGenes[calculateGenes$class==1,i])
+	checkGenes[i,3] <- sum(calculateGenes[calculateGenes$class==0,i])
 }
-genesToRemove <- checkGenes[checkGenes$tumorPresent < 0.2 & checkGenes$healthyPresent < 0.2,]$genes
+genesToRemove <- checkGenes[checkGenes$tumorPresent < 0.2*length(classes[classes==1]) & checkGenes$healthyPresent < 0.2*length(classes[classes==0]),]$genes
 interTrainingSet <- zTraining[,-which(colnames(zTraining) %in% genesToRemove)]
 readyTrainingSet <- log2(interTrainingSet+1.0)
 
