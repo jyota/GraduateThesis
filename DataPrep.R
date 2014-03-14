@@ -59,14 +59,14 @@ ggplot(postGeneExamine,aes(value)) + geom_histogram() + facet_wrap(~ variable) +
 randSampleNames = sample(rownames(readyTrainingSet),9)
 # Just look at those after filtering... but before/after transformat.
 preGeneExamine = melt(data.frame(barcode=rownames(castTrainingSet[rownames(castTrainingSet) %in% randSampleNames,which(colnames(castTrainingSet) %in% colnames(readyTrainingSet))]),castTrainingSet[rownames(castTrainingSet) %in% randSampleNames,which(colnames(castTrainingSet) %in% colnames(readyTrainingSet))],check.names=F))
-ggplot(preGeneExamine,aes(factor(barcode),value,fill=factor(barcode))) + geom_boxplot() + ylab("Expected Count of Short Reads Derived from Gene") + xlab("Sample") + theme_bw() + theme(plot.margin=unit(c(1,1,1,1),'lines'),axis.text.x = element_text(angle=90,hjust=1),legend.position='none') + scale_y_continuous(labels=comma) 
+ggplot(preGeneExamine,aes(factor(barcode),value,fill=factor(barcode))) + geom_boxplot() + ylab("Expected Count of Short Reads Derived from Gene") + xlab("Sample") + theme_bw() + theme(plot.margin=unit(c(1,1,1,1),'lines'),axis.text.x = element_text(angle=90,hjust=1),legend.position='none') + scale_y_continuous(labels=comma) + coord_cartesian(ylim=c(0,25000))
 postGeneExamine = melt(data.frame(barcode=rownames(readyTrainingSet[rownames(readyTrainingSet) %in% randSampleNames,]),readyTrainingSet[rownames(readyTrainingSet) %in% randSampleNames,],check.names=F))
 ggplot(postGeneExamine,aes(factor(barcode),value,fill=factor(barcode))) + stat_boxplot(geom='errorbar') + geom_boxplot() + ylab("Expected Count of Short Reads Derived from Gene (transformed)") + xlab("Sample") + theme_bw() + theme(plot.margin=unit(c(1,1,1,1),'lines'),axis.text.x = element_text(angle=90,hjust=1),legend.position='none') + scale_y_continuous(labels=comma) 
 
 # Mean vs. Variance plots (before and after upper quartile normalization excluding genes filtered out for all plots)
 options(scipen=999)
 prefiltMeanVar = data.frame(Mean=colMeans(castTrainingSet[,which(colnames(castTrainingSet) %in% colnames(readyTrainingSet))]),Variance=colVars(castTrainingSet[,which(colnames(castTrainingSet) %in% colnames(readyTrainingSet))]))
-ggplot(prefiltMeanVar,aes(x=Mean,y=Variance)) + geom_point() + scale_y_continuous(labels=comma) + scale_x_continuous(labels=comma) + theme(axis.title.x=element_text(vjust=-.5),axis.title.y=element_text(vjust=-.05), plot.margin=unit(c(1,1,1,1),'lines')) + theme_bw()
+#ggplot(prefiltMeanVar,aes(x=Mean,y=Variance)) + geom_point() + scale_y_continuous(labels=comma) + scale_x_continuous(labels=comma) + theme(axis.title.x=element_text(vjust=-.5),axis.title.y=element_text(vjust=-.05), plot.margin=unit(c(1,1,1,1),'lines')) + theme_bw()
 ggplot(prefiltMeanVar,aes(x=Mean,y=Variance)) + geom_point() + scale_y_continuous(limits=c(0,30000000000),labels=comma) + scale_x_continuous(labels=comma) + theme(axis.title.x=element_text(vjust=-.5),axis.title.y=element_text(vjust=-.05), plot.margin=unit(c(1,1,1,1),'lines')) + theme_bw()
 postfiltMeanVar = data.frame(Mean=colMeans(readyTrainingSet),Variance=colVars(readyTrainingSet))
 ggplot(postfiltMeanVar,aes(x=Mean,y=Variance)) + geom_point() + scale_y_continuous(labels=comma) + scale_x_continuous(labels=comma) + theme(axis.title.x=element_text(vjust=-.5),axis.title.y=element_text(vjust=-.05), plot.margin=unit(c(1,1,1,1),'lines')) + theme_bw()
@@ -74,8 +74,11 @@ ggplot(postfiltMeanVar,aes(x=Mean,y=Variance)) + geom_point() + scale_y_continuo
 # Clear out some of the data from memory prior to feature selection.
 prefiltMeanVar <- NULL
 postfilMeanVar <- NULL
-castTrainingSet <- NULL
-trainingSet <- NULL
+preGeneExamine <- NULL
+postGeneExamine <- NULL
+vTraining <- NULL
+zTraining <- NULL
+interTrainingSet <- NULL
 
 # Interact with NCBI's SRA db to get metadata for independent test data set.
 require(SRAdb)
