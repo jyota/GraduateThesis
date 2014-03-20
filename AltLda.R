@@ -24,3 +24,17 @@ linscore <- function(x, grouping){
 	return(data.frame(result))
 }
 
+getPosteriorProbsLinscore <- function(linscoreResults){
+	# Requires that returned from linscore to be input
+	# Subtract minimum value of row from each row to prepare for exp()
+	intermezzo <- (linscoreResults - apply(linscoreResults,1,min,na.rm=T))
+	intermezzo <- as.matrix(intermezzo)
+	# Now just calculate Bayes posterior probability with these values.
+	class0 <- exp(intermezzo[,1]) / (exp(intermezzo[,1])+exp(intermezzo[,2]))
+	class1 <- exp(intermezzo[,2]) / (exp(intermezzo[,1])+exp(intermezzo[,2]))
+	result <- matrix(ncol=2,nrow=length(class0))
+	result[,1] <- class0
+	result[,2] <- class1
+	colnames(result) <- c('class0','class1')
+	return(data.frame(result))
+}
