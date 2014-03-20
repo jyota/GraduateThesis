@@ -38,3 +38,19 @@ getPosteriorProbsLinscore <- function(linscoreResults){
 	colnames(result) <- c('class0','class1')
 	return(data.frame(result))
 }
+
+predictNewSamples <- function(x, grouping, newdata){
+	dat <- data.frame(x, class=grouping)
+	m0 <- colMeans(dat[dat$class==0,1:NCOL(x)])
+	m1 <- colMeans(dat[dat$class==1,1:NCOL(x)])
+	p0 <- length(grouping[grouping==0])/length(grouping)
+	p1 <- length(grouping[grouping==1])/length(grouping)	
+	Sp <- pooledCov(x,grouping)
+	s0 <- (as.matrix(newdata[,1:NCOL(x)]) %*% solve(Sp) %*% as.matrix(m0)) - rep(0.5 * (m0 %*% solve(Sp) %*% as.matrix(m0)),nrow(newdata)) + log(p0)
+	s1 <- (as.matrix(newdata[,1:NCOL(x)]) %*% solve(Sp) %*% as.matrix(m1)) - rep(0.5 * (m1 %*% solve(Sp) %*% as.matrix(m1)),nrow(newdata)) + log(p1)
+	result <- matrix(ncol=2,nrow=nrow(newdata))
+	result[,1] <- s0
+	result[,2] <- s1
+	colnames(result) <- c('class0','class1')
+	return(data.frame(result))
+}
