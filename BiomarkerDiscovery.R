@@ -83,48 +83,48 @@ write.table(infSetFive$repStats,"~/Thesis/infSetFive.txt",sep='\t',row.names=T,c
 # Check out more granular cutoffs to see what may be appropriate.
 infSetThreePointFive <- modifiedBagging(as.matrix(readyTrainingSet[,-which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>3.5,3:7]))]),classes,rep=100,stopP=5,stopT2=1000,proportion=.8,progressBar=T)
 write.table(infSetThreePointFive$repStats,"~/Thesis/infSetThreePointFive.txt",sep='\t',row.names=T,col.names=T)
-infSetTwoPointSFive <- modifiedBagging(as.matrix(readyTrainingSet[,-which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>2.75,3:7]))]),classes,rep=100,stopP=5,stopT2=1000,proportion=.8,progressBar=T)
-write.table(infSetTwoPointSFive$repStats,"~/Thesis/infSetTwoPointSFive.txt",sep='\t',row.names=T,col.names=T)
 infSetTwoPointFive <- modifiedBagging(as.matrix(readyTrainingSet[,-which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>2.5,3:7]))]),classes,rep=100,stopP=5,stopT2=1000,proportion=.8,progressBar=T)
 write.table(infSetTwoPointFive$repStats,"~/Thesis/infSetTwoPointFive.txt",sep='\t',row.names=T,col.names=T)
 
+
 # Plot informative set, with line for our cutoff
 informativeSet$Index <- as.numeric(as.character(informativeSet$Index))
-ggplot(informativeSet,aes(x=Index,y=T2))+geom_point()+theme_bw()+geom_hline(yintercept=4.0,colour='red',alpha=.8)
+ggplot(informativeSet,aes(x=Index,y=T2))+geom_point()+theme_bw()+geom_hline(yintercept=3.0,colour='red',alpha=.8)
 
 source('findInformativeBagging.R')
 # Get estimates for final informative set of genes now that cutoff decided (1000 modified bagging schema iterations). Store associated variables this time.
-infSetFinal <- findInformativeBagging(as.matrix(readyTrainingSet[,which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>4.0,3:7]))]),classes,rep=1000,stopP=5,stopT2=1000,proportion=.8)
+infSetFinal <- findInformativeBagging(as.matrix(readyTrainingSet[,which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>3.0,3:7]))]),classes,rep=1000,stopP=5,stopT2=1000,proportion=.8)
 write.table(infSetFinal,"~/Thesis/infSetFinal.txt",sep='\t',row.names=T,col.names=T)
 
-# Show 'discriminatory space' for LDA classifier from informative set
-infBiomarker <- hybridFeatureSelection(as.matrix(readyTrainingSet[,which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>4.0,3:7]))]),classes,stopP=5,stopT2=1000)
+# Show 'discriminatory space' for LDA classifier from informative set via posterior probabilities of class.
+infBiomarker <- hybridFeatureSelection(as.matrix(readyTrainingSet[,which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>3.0,3:7]))]),classes,stopP=5,stopT2=1000)
 # Fit an LDA model with biomarker variables
 infFit <- lda(class ~ .,data=data.frame(as.matrix(readyTrainingSet[,which(colnames(readyTrainingSet) %in% names(infBiomarker))]),class=classes,check.names=F))
 infPredFit <- predict(infFit, data.frame(readyTrainingSet,check.names=F))
-infPlotFit <- data.frame(LD1=infPredFit$x,pred_class=infPredFit$class,actual_class=classes)
+infPlotFit <- data.frame(classProb=c(infPredFit$posterior[,1],infPredFit$posterior[,2]),
+	shown_class=c(rep('Healthy',length(classes)),rep('Tumor',length(classes))),actual_class=c(classes,classes))
 infPlotFit$Class <- 'Healthy'
 infPlotFit[infPlotFit$actual_class==1,]$Class <- 'Tumor'
-ggplot(infPlotFit,aes(LD1,fill=Class))+geom_density(alpha=.8)+theme_bw()+xlab('Discriminant Score')
+ggplot(infPlotFit,aes(classProb,fill=Class))+geom_histogram(binwidth=0.02)+facet_grid(shown_class ~ .) + theme_bw()+xlab('Posterior Probability of Class Membership')
 
 # Check these estimates for entire set of variables (1000 modified bagging schema iterations)
 fullSetFinal <- findInformativeBagging(as.matrix(readyTrainingSet),classes,rep=1000,stopP=5,stopT2=1000,proportion=.8)
 write.table(fullSetFinal,"~/Thesis/fullSetFinal.txt",sep='\t',row.names=T,col.names=T)
 
 # Get modified bagging estimates for 'non-informative' set of genes
-nonInfSetFinal <- modifiedBagging(as.matrix(readyTrainingSet[,-which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>4.0,3:7]))]),classes,rep=1000,stopP=5,stopT2=1000,proportion=.8)
+nonInfSetFinal <- modifiedBagging(as.matrix(readyTrainingSet[,-which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>3.0,3:7]))]),classes,rep=1000,stopP=5,stopT2=1000,proportion=.8)
 write.table(nonInfSetFinal$repStats,"~/Thesis/nonInfSetFinal.txt",sep='\t',row.names=T,col.names=T)
 
 # Show 'discriminatory space' for LDA classifier NOT from informative set
-infBiomarker <- hybridFeatureSelection(as.matrix(readyTrainingSet[,-which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>4.0,3:7]))]),classes,stopP=5,stopT2=1000)
+infBiomarker <- hybridFeatureSelection(as.matrix(readyTrainingSet[,-which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>3.0,3:7]))]),classes,stopP=5,stopT2=1000)
 # Fit an LDA model with biomarker variables
 infFit <- lda(class ~ .,data=data.frame(as.matrix(readyTrainingSet[,which(colnames(readyTrainingSet) %in% names(infBiomarker))]),class=classes,check.names=F))
 infPredFit <- predict(infFit, data.frame(readyTrainingSet,check.names=F))
-infPlotFit <- data.frame(LD1=infPredFit$x,pred_class=infPredFit$class,actual_class=classes)
+infPlotFit <- data.frame(classProb=c(infPredFit$posterior[,1],infPredFit$posterior[,2]),
+	shown_class=c(rep('Healthy',length(classes)),rep('Tumor',length(classes))),actual_class=c(classes,classes))
 infPlotFit$Class <- 'Healthy'
 infPlotFit[infPlotFit$actual_class==1,]$Class <- 'Tumor'
-ggplot(infPlotFit,aes(LD1,fill=Class))+geom_density(alpha=.8)+theme_bw()+xlab('Discriminant Score')
-
+ggplot(infPlotFit,aes(classProb,fill=Class))+geom_histogram(binwidth=0.02)+facet_grid(shown_class ~ .) + theme_bw()+xlab('Posterior Probability of Class Membership')
 
 # Cluster by Pearson's correlation distance 
 require(Hmisc)
