@@ -93,7 +93,7 @@ for(i in 1:NROW(conversion)){
 }
 
 # Remove runs with unreleased data.
-conversion <- conversion[!(conversion$run %in% c('ERR058695','ERR318894','ERR318891','ERR318895','ERR318892','ERR318893')),]
+conversion <- conversion[!(conversion$experiment %in% c('ERX040280','ERX040279','ERX040278','ERX040277','ERX040276','ERR318893')),]
 # Class is 1 for tumor, 0 for healthy/normal
 conversion$class <- 1
 # Parse description to mark the normal biological samples.
