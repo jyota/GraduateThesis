@@ -99,7 +99,7 @@ write.table(infSetFinal,"~/Thesis/infSetFinal.txt",sep='\t',row.names=T,col.name
 # Show 'discriminatory space' for LDA classifier from informative set via posterior probabilities of class.
 infBiomarker <- hybridFeatureSelection(as.matrix(readyTrainingSet[,which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>3.0,3:7]))]),classes,stopP=5,stopT2=1000)
 # Fit an LDA model with biomarker variables
-infFit <- lda(class ~ .,data=data.frame(as.matrix(readyTrainingSet[,which(colnames(readyTrainingSet) %in% names(infBiomarker))]),class=classes,check.names=F),priors=c(.5,.5))
+infFit <- lda(class ~ .,data=data.frame(as.matrix(readyTrainingSet[,which(colnames(readyTrainingSet) %in% names(infBiomarker))]),class=classes,check.names=F),prior=c(.5,.5))
 infPredFit <- predict(infFit, data.frame(readyTrainingSet,check.names=F))
 infPlotFit <- data.frame(classProb=c(infPredFit$posterior[,1],infPredFit$posterior[,2]),
 	shown_class=c(rep('Healthy',length(classes)),rep('Tumor',length(classes))),actual_class=c(classes,classes))
@@ -118,7 +118,7 @@ write.table(nonInfSetFinal$repStats,"~/Thesis/nonInfSetFinal.txt",sep='\t',row.n
 # Show 'discriminatory space' for LDA classifier NOT from informative set
 infBiomarker <- hybridFeatureSelection(as.matrix(readyTrainingSet[,-which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>3.0,3:7]))]),classes,stopP=5,stopT2=1000)
 # Fit an LDA model with biomarker variables
-infFit <- lda(class ~ .,data=data.frame(as.matrix(readyTrainingSet[,which(colnames(readyTrainingSet) %in% names(infBiomarker))]),class=classes,check.names=F),priors=c(.5,.5))
+infFit <- lda(class ~ .,data=data.frame(as.matrix(readyTrainingSet[,which(colnames(readyTrainingSet) %in% names(infBiomarker))]),class=classes,check.names=F),prior=c(.5,.5))
 infPredFit <- predict(infFit, data.frame(readyTrainingSet,check.names=F))
 infPlotFit <- data.frame(classProb=c(infPredFit$posterior[,1],infPredFit$posterior[,2]),
 	shown_class=c(rep('Healthy',length(classes)),rep('Tumor',length(classes))),actual_class=c(classes,classes))
@@ -148,7 +148,7 @@ frequentPrimary[frequentPrimary %in% unlist(fullSetFinal[fullSetFinal$Accuracy==
 finalBiomarker <- hybridFeatureSelection(as.matrix(readyTrainingSet[,which(colnames(readyTrainingSet) %in% frequentPrimary)]),classes,stopP=5,stopT2=1000)
 
 # Fit an LDA model with biomarker variables
-biomarkerFit <- lda(class ~ .,data=data.frame(as.matrix(readyTrainingSet[,which(colnames(readyTrainingSet) %in% names(finalBiomarker))]),class=classes,check.names=F),priors=c(.5,.5))
+biomarkerFit <- lda(class ~ .,data=data.frame(as.matrix(readyTrainingSet[,which(colnames(readyTrainingSet) %in% names(finalBiomarker))]),class=classes,check.names=F),prior=c(.5,.5))
 # Confusion matrix for training data (just for gut check, not relevant result really)
 table(classes,predict(biomarkerFit,priors=c(.5,.5),data.frame(readyTrainingSet,check.names=F))$class)
 
