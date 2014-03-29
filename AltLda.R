@@ -15,8 +15,8 @@ linscore <- function(x, grouping){
 	Sp <- pooledCov(x,grouping)
 	#s0 <- -0.5 * rep((crossprod(m0,solve(Sp)) %*% m0),NROW(x)) + (crossprod(m0,solve(Sp)) %*% t(as.matrix(dat[,1:NCOL(x)]))) + log(p0)
 	#s1 <- -0.5 * rep((crossprod(m1,solve(Sp)) %*% m1),NROW(x)) + (crossprod(m1,solve(Sp)) %*% t(as.matrix(dat[,1:NCOL(x)]))) + log(p1)
-	s0 <- (as.matrix(dat[,1:NCOL(x)]) %*% solve(Sp) %*% as.matrix(m0)) - rep(0.5 * (m0 %*% solve(Sp) %*% as.matrix(m0)),nrow(x)) + log(p0)
-	s1 <- (as.matrix(dat[,1:NCOL(x)]) %*% solve(Sp) %*% as.matrix(m1)) - rep(0.5 * (m1 %*% solve(Sp) %*% as.matrix(m1)),nrow(x)) + log(p1)
+	s0 <- (as.matrix(dat[,1:NCOL(x)]) %*% solve(Sp) %*% as.matrix(m0)) - rep(0.5 * (m0 %*% solve(Sp) %*% as.matrix(m0)),nrow(x)) + log(0.5)
+	s1 <- (as.matrix(dat[,1:NCOL(x)]) %*% solve(Sp) %*% as.matrix(m1)) - rep(0.5 * (m1 %*% solve(Sp) %*% as.matrix(m1)),nrow(x)) + log(0.5)
 	result <- matrix(ncol=2,nrow=nrow(x))
 	result[,1] <- s0
 	result[,2] <- s1

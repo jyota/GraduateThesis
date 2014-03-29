@@ -4,23 +4,23 @@ source('findInformativeBagging.R')
 source('modifiedBagging.R')
 
 # Generate results for biomarkers of size p = 2 through 10. With 80% proportion in training set, 20% in out of bag validation.
-P10Result = findInformativeBagging(as.matrix(readyTrainingSet),classes,rep=100,stopP=10,stopT2=1000,proportion=.8)
+P10Result = findInformativeBagging(as.matrix(readyTrainingSet),classes,rep=500,stopP=10,stopT2=1000,proportion=.8,priors=c(.5,.5))
 write.table(P10Result,"~/Thesis/p10result.txt",sep='\t',col.names=T,row.names=T)
-P9Result = findInformativeBagging(as.matrix(readyTrainingSet),classes,rep=100,stopP=9,stopT2=1000,proportion=.8)
+P9Result = findInformativeBagging(as.matrix(readyTrainingSet),classes,rep=500,stopP=9,stopT2=1000,proportion=.8,priors=c(.5,.5))
 write.table(P9Result,"~/Thesis/p9result.txt",sep='\t',col.names=T,row.names=T)
-P8Result = findInformativeBagging(as.matrix(readyTrainingSet),classes,rep=100,stopP=8,stopT2=1000,proportion=.8)
+P8Result = findInformativeBagging(as.matrix(readyTrainingSet),classes,rep=500,stopP=8,stopT2=1000,proportion=.8,priors=c(.5,.5))
 write.table(P8Result,"~/Thesis/p8result.txt",sep='\t',col.names=T,row.names=T)
-P7Result = findInformativeBagging(as.matrix(readyTrainingSet),classes,rep=100,stopP=7,stopT2=1000,proportion=.8)
+P7Result = findInformativeBagging(as.matrix(readyTrainingSet),classes,rep=500,stopP=7,stopT2=1000,proportion=.8,priors=c(.5,.5))
 write.table(P7Result,"~/Thesis/p7result.txt",sep='\t',col.names=T,row.names=T)
-P6Result = findInformativeBagging(as.matrix(readyTrainingSet),classes,rep=100,stopP=6,stopT2=1000,proportion=.8)
+P6Result = findInformativeBagging(as.matrix(readyTrainingSet),classes,rep=500,stopP=6,stopT2=1000,proportion=.8,priors=c(.5,.5))
 write.table(P6Result,"~/Thesis/p6result.txt",sep='\t',col.names=T,row.names=T)
-P5Result = findInformativeBagging(as.matrix(readyTrainingSet),classes,rep=100,stopP=5,stopT2=1000,proportion=.8)
+P5Result = findInformativeBagging(as.matrix(readyTrainingSet),classes,rep=500,stopP=5,stopT2=1000,proportion=.8,priors=c(.5,.5))
 write.table(P5Result,"~/Thesis/p5result.txt",sep='\t',col.names=T,row.names=T)
-P4Result = findInformativeBagging(as.matrix(readyTrainingSet),classes,rep=100,stopP=4,stopT2=1000,proportion=.8)
+P4Result = findInformativeBagging(as.matrix(readyTrainingSet),classes,rep=500,stopP=4,stopT2=1000,proportion=.8,priors=c(.5,.5))
 write.table(P4Result,"~/Thesis/p4result.txt",sep='\t',col.names=T,row.names=T)
-P3Result = findInformativeBagging(as.matrix(readyTrainingSet),classes,rep=100,stopP=3,stopT2=1000,proportion=.8)
+P3Result = findInformativeBagging(as.matrix(readyTrainingSet),classes,rep=500,stopP=3,stopT2=1000,proportion=.8,priors=c(.5,.5))
 write.table(P3Result,"~/Thesis/p3result.txt",sep='\t',col.names=T,row.names=T)
-P2Result = findInformativeBagging(as.matrix(readyTrainingSet),classes,rep=100,stopP=2,stopT2=1000,proportion=.8)
+P2Result = findInformativeBagging(as.matrix(readyTrainingSet),classes,rep=500,stopP=2,stopT2=1000,proportion=.8,priors=c(.5,.5))
 write.table(P2Result,"~/Thesis/p2result.txt",sep='\t',col.names=T,row.names=T)
 
 # Plots of accuracy, sensitivity, and specificity for various P
@@ -63,7 +63,7 @@ ggplot(repSpec,aes(x=specificity,colour=P))+geom_density(size=1.1,alpha=.8)+them
 
 # Find the informative set of genes
 source('findInformative.R')
-informativeSet = findInformative(x=as.matrix(readyTrainingSet),y=classes,rep=300,proportion=.8,stopP=5,stopT2=1000)
+informativeSet = findInformative(x=as.matrix(readyTrainingSet),y=classes,rep=300,proportion=.8,stopP=5,stopT2=1000,priors=c(.5,.5))
 write.table(informativeSet,"~/Thesis/informativeSetDetermine.txt",sep='\t',col.names=T,row.names=T)
 
 # If needed to be read back in:
@@ -72,18 +72,18 @@ informativeSet <- read.table("~/Thesis/informativeSetDetermine.txt",sep='\t',hea
 informativeSet$T2 <- as.numeric(as.character(informativeSet$T2))
 # Find a candidate level for T2 to cutoff at. We'll go from anything not associated with T2 > 2.0 and increment cutoff each run.
 # Obtain accuracy estimates from modified bagging for genes not above each cutoff to help make decision.
-infSetTwo <- modifiedBagging(as.matrix(readyTrainingSet[,-which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>2.0,3:7]))]),classes,rep=100,stopP=5,stopT2=1000,proportion=.8,progressBar=T)
+infSetTwo <- modifiedBagging(as.matrix(readyTrainingSet[,-which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>2.0,3:7]))]),classes,rep=100,stopP=5,stopT2=1000,proportion=.8,progressBar=T,priors=c(.5,.5))
 write.table(infSetTwo$repStats,"~/Thesis/infSetTwo.txt",sep='\t',row.names=T,col.names=T)
-infSetThree <- modifiedBagging(as.matrix(readyTrainingSet[,-which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>3.0,3:7]))]),classes,rep=100,stopP=5,stopT2=1000,proportion=.8,progressBar=T)
+infSetThree <- modifiedBagging(as.matrix(readyTrainingSet[,-which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>3.0,3:7]))]),classes,rep=100,stopP=5,stopT2=1000,proportion=.8,progressBar=T,priors=c(.5,.5))
 write.table(infSetThree$repStats,"~/Thesis/infSetThree.txt",sep='\t',row.names=T,col.names=T)
-infSetFour <- modifiedBagging(as.matrix(readyTrainingSet[,-which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>4.0,3:7]))]),classes,rep=100,stopP=5,stopT2=1000,proportion=.8,progressBar=T)
+infSetFour <- modifiedBagging(as.matrix(readyTrainingSet[,-which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>4.0,3:7]))]),classes,rep=100,stopP=5,stopT2=1000,proportion=.8,progressBar=T,priors=c(.5,.5))
 write.table(infSetFour$repStats,"~/Thesis/infSetFour.txt",sep='\t',row.names=T,col.names=T)
-infSetFive <- modifiedBagging(as.matrix(readyTrainingSet[,-which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>5.0,3:7]))]),classes,rep=100,stopP=5,stopT2=1000,proportion=.8,progressBar=T)
+infSetFive <- modifiedBagging(as.matrix(readyTrainingSet[,-which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>5.0,3:7]))]),classes,rep=100,stopP=5,stopT2=1000,proportion=.8,progressBar=T,priors=c(.5,.5))
 write.table(infSetFive$repStats,"~/Thesis/infSetFive.txt",sep='\t',row.names=T,col.names=T)
 # Check out more granular cutoffs to see what may be appropriate.
-infSetThreePointFive <- modifiedBagging(as.matrix(readyTrainingSet[,-which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>3.5,3:7]))]),classes,rep=100,stopP=5,stopT2=1000,proportion=.8,progressBar=T)
+infSetThreePointFive <- modifiedBagging(as.matrix(readyTrainingSet[,-which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>3.5,3:7]))]),classes,rep=100,stopP=5,stopT2=1000,proportion=.8,progressBar=T,priors=c(.5,.5))
 write.table(infSetThreePointFive$repStats,"~/Thesis/infSetThreePointFive.txt",sep='\t',row.names=T,col.names=T)
-infSetTwoPointFive <- modifiedBagging(as.matrix(readyTrainingSet[,-which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>2.5,3:7]))]),classes,rep=100,stopP=5,stopT2=1000,proportion=.8,progressBar=T)
+infSetTwoPointFive <- modifiedBagging(as.matrix(readyTrainingSet[,-which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>2.5,3:7]))]),classes,rep=100,stopP=5,stopT2=1000,proportion=.8,progressBar=T,priors=c(.5,.5))
 write.table(infSetTwoPointFive$repStats,"~/Thesis/infSetTwoPointFive.txt",sep='\t',row.names=T,col.names=T)
 
 
@@ -93,13 +93,13 @@ ggplot(informativeSet,aes(x=Index,y=T2))+geom_point()+theme_bw()+geom_hline(yint
 
 source('findInformativeBagging.R')
 # Get estimates for final informative set of genes now that cutoff decided (1000 modified bagging schema iterations). Store associated variables this time.
-infSetFinal <- findInformativeBagging(as.matrix(readyTrainingSet[,which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>3.0,3:7]))]),classes,rep=1000,stopP=5,stopT2=1000,proportion=.8)
+infSetFinal <- findInformativeBagging(as.matrix(readyTrainingSet[,which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>3.0,3:7]))]),classes,rep=1000,stopP=5,stopT2=1000,proportion=.8,priors=c(.5,.5))
 write.table(infSetFinal,"~/Thesis/infSetFinal.txt",sep='\t',row.names=T,col.names=T)
 
 # Show 'discriminatory space' for LDA classifier from informative set via posterior probabilities of class.
 infBiomarker <- hybridFeatureSelection(as.matrix(readyTrainingSet[,which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>3.0,3:7]))]),classes,stopP=5,stopT2=1000)
 # Fit an LDA model with biomarker variables
-infFit <- lda(class ~ .,data=data.frame(as.matrix(readyTrainingSet[,which(colnames(readyTrainingSet) %in% names(infBiomarker))]),class=classes,check.names=F))
+infFit <- lda(class ~ .,data=data.frame(as.matrix(readyTrainingSet[,which(colnames(readyTrainingSet) %in% names(infBiomarker))]),class=classes,check.names=F),priors=c(.5,.5))
 infPredFit <- predict(infFit, data.frame(readyTrainingSet,check.names=F))
 infPlotFit <- data.frame(classProb=c(infPredFit$posterior[,1],infPredFit$posterior[,2]),
 	shown_class=c(rep('Healthy',length(classes)),rep('Tumor',length(classes))),actual_class=c(classes,classes))
@@ -108,17 +108,17 @@ infPlotFit[infPlotFit$actual_class==1,]$Class <- 'Tumor'
 ggplot(infPlotFit,aes(classProb,fill=Class))+geom_histogram(binwidth=0.02)+facet_grid(shown_class ~ .) + theme_bw()+xlab('Posterior Probability of Class Membership')
 
 # Check these estimates for entire set of variables (1000 modified bagging schema iterations)
-fullSetFinal <- findInformativeBagging(as.matrix(readyTrainingSet),classes,rep=1000,stopP=5,stopT2=1000,proportion=.8)
+fullSetFinal <- findInformativeBagging(as.matrix(readyTrainingSet),classes,rep=1000,stopP=5,stopT2=1000,proportion=.8,priors=c(.5,.5))
 write.table(fullSetFinal,"~/Thesis/fullSetFinal.txt",sep='\t',row.names=T,col.names=T)
 
 # Get modified bagging estimates for 'non-informative' set of genes
-nonInfSetFinal <- modifiedBagging(as.matrix(readyTrainingSet[,-which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>3.0,3:7]))]),classes,rep=1000,stopP=5,stopT2=1000,proportion=.8)
+nonInfSetFinal <- findInformativeBagging(as.matrix(readyTrainingSet[,-which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>3.0,3:7]))]),classes,rep=1000,stopP=5,stopT2=1000,proportion=.8,priors=c(.5,.5))
 write.table(nonInfSetFinal$repStats,"~/Thesis/nonInfSetFinal.txt",sep='\t',row.names=T,col.names=T)
 
 # Show 'discriminatory space' for LDA classifier NOT from informative set
 infBiomarker <- hybridFeatureSelection(as.matrix(readyTrainingSet[,-which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>3.0,3:7]))]),classes,stopP=5,stopT2=1000)
 # Fit an LDA model with biomarker variables
-infFit <- lda(class ~ .,data=data.frame(as.matrix(readyTrainingSet[,which(colnames(readyTrainingSet) %in% names(infBiomarker))]),class=classes,check.names=F))
+infFit <- lda(class ~ .,data=data.frame(as.matrix(readyTrainingSet[,which(colnames(readyTrainingSet) %in% names(infBiomarker))]),class=classes,check.names=F),priors=c(.5,.5))
 infPredFit <- predict(infFit, data.frame(readyTrainingSet,check.names=F))
 infPlotFit <- data.frame(classProb=c(infPredFit$posterior[,1],infPredFit$posterior[,2]),
 	shown_class=c(rep('Healthy',length(classes)),rep('Tumor',length(classes))),actual_class=c(classes,classes))
@@ -148,7 +148,7 @@ frequentPrimary[frequentPrimary %in% unlist(fullSetFinal[fullSetFinal$Accuracy==
 finalBiomarker <- hybridFeatureSelection(as.matrix(readyTrainingSet[,which(colnames(readyTrainingSet) %in% frequentPrimary)]),classes,stopP=5,stopT2=1000)
 
 # Fit an LDA model with biomarker variables
-biomarkerFit <- lda(class ~ .,data=data.frame(as.matrix(readyTrainingSet[,which(colnames(readyTrainingSet) %in% names(finalBiomarker))]),class=classes,check.names=F))
+biomarkerFit <- lda(class ~ .,data=data.frame(as.matrix(readyTrainingSet[,which(colnames(readyTrainingSet) %in% names(finalBiomarker))]),class=classes,check.names=F),priors=c(.5,.5))
 # Confusion matrix for training data (just for gut check, not relevant result really)
 table(classes,predict(biomarkerFit,priors=c(.5,.5),data.frame(readyTrainingSet,check.names=F))$class)
 
