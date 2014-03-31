@@ -11,5 +11,6 @@ else
     fullFile.each_with_index{ |fn, idx|
     	FileUtils.copy(fn,"./" + listDirs[idx] + ".bam")
     	system "./rsem-calculate-expression --paired-end --bam --no-bam-output --estimate-rspd " + listDirs[idx] + ".bam hg19 " + listDirs[idx]
+    	FileUtils.rm((listDirs[idx] + ".bam"))
     }
 end
