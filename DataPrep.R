@@ -99,4 +99,36 @@ conversion$class <- 1
 # Parse description to mark the normal biological samples.
 conversion[grepl('apparently_normal',conversion$description),]$class <- 0
 # These results will eventually be joined to the filenames of independent data set to get biological class indicator.
-# Will need to resolve how to handle more than one run for a given sample...
+
+# Load up test data set and prepare for use
+setwd("~/rsem-1.2.4/")
+listFiles = list.files(pattern="*genes.results")
+tmpFileMat <- read.table(listFiles[1],sep='\t',header=T,check.names=F)
+tmpFileMat <- tmpFileMat[!grepl('^uc',tmpFileMat$gene_id),]
+tmpFileMat$run <- substring(listFiles[1],1,9)
+finFileMat <- tmpFileMat
+for(i in 2:NROW(listFiles)){
+	tmpFileMat <- read.table(listFiles[i],sep='\t',header=T,check.names=F)
+	tmpFileMat <- tmpFileMat[!grepl('^uc',tmpFileMat$gene_id),]
+	tmpFileMat$run <- substring(listFiles[i],1,9)
+	finFileMat <- rbind(finFileMat,tmpFileMat)
+}
+finFileMat$'transcript_id(s)' <- NULL
+finFileMat$length <- NULL
+finFileMat$effective_length <- NULL
+finFileMat$TPM <- NULL
+finFileMat$FPKM <- NULL
+finFileMat <- data.frame(run=finFileMat$run,gene_id=finFileMat$gene_id,expected_count=finFileMat$expected_count,check.names=F)
+castTestSet <- cast(finFileMat, run ~ gene_id)
+castTestSet <- merge(castTestSet, conversion, by = 'run')
+castTestSet$study <- NULL
+castTestSet$submission <- NULL
+castTestSet$sample <- NULL
+castTestSet$experiment <- NULL
+castTestSet$description <- NULL
+rownames(castTestSet) <- castTestSet$run
+castTestSet$run <- NULL
+# Need to verify the above removes technical replicates when all data finished processing.
+
+# Write the test set file with class identifier. 
+write.table(castTestSet,"mungedTestSet.txt",sep='\t',col.names=T,row.names=T)
