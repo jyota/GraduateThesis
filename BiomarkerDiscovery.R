@@ -23,6 +23,18 @@ write.table(P3Result,"~/Thesis/p3result.txt",sep='\t',col.names=T,row.names=T)
 P2Result = findInformativeBagging(as.matrix(readyTrainingSet),classes,rep=500,stopP=2,stopT2=1000,proportion=.8,priors=c(.5,.5))
 write.table(P2Result,"~/Thesis/p2result.txt",sep='\t',col.names=T,row.names=T)
 
+# Reload data if needed
+P10Result <- read.table('~/Thesis/p10result.txt',sep='\t',header=T,row.names=1,stringsAsFactors=F)
+P9Result <- read.table('~/Thesis/p9result.txt',sep='\t',header=T,row.names=1,stringsAsFactors=F)
+P8Result <- read.table('~/Thesis/p8result.txt',sep='\t',header=T,row.names=1,stringsAsFactors=F)
+P7Result <- read.table('~/Thesis/p7result.txt',sep='\t',header=T,row.names=1,stringsAsFactors=F)
+P6Result <- read.table('~/Thesis/p6result.txt',sep='\t',header=T,row.names=1,stringsAsFactors=F)
+P5Result <- read.table('~/Thesis/p5result.txt',sep='\t',header=T,row.names=1,stringsAsFactors=F)
+P4Result <- read.table('~/Thesis/p4result.txt',sep='\t',header=T,row.names=1,stringsAsFactors=F)
+P3Result <- read.table('~/Thesis/p3result.txt',sep='\t',header=T,row.names=1,stringsAsFactors=F)
+P2Result <- read.table('~/Thesis/p2result.txt',sep='\t',header=T,row.names=1,stringsAsFactors=F)
+
+
 # Plots of accuracy, sensitivity, and specificity for various P
 repAcc <- data.frame(accuracy=c(as.numeric(as.character(P2Result$Accuracy)),
 	as.numeric(as.character(P3Result$Accuracy)),
@@ -62,18 +74,28 @@ repSpec$P <- as.factor(repSpec$P)
 ggplot(repSpec,aes(x=specificity,colour=P))+geom_density(size=1.1,alpha=.8)+theme_classic()
 
 # Check discriminatory space of choice of various P
+lda10 <- lda(class ~ .,data=data.frame(class=classes,readyTrainingSet[,which(colnames(readyTrainingSet) %in% as.character(unlist(P10Result[1,6:15])))],check.names=F),prior=c(.5,.5))
+lda9 <- lda(class ~ .,data=data.frame(class=classes,readyTrainingSet[,which(colnames(readyTrainingSet) %in% as.character(unlist(P9Result[1,6:14])))],check.names=F),prior=c(.5,.5))
+lda8 <- lda(class ~ .,data=data.frame(class=classes,readyTrainingSet[,which(colnames(readyTrainingSet) %in% as.character(unlist(P8Result[2,6:13])))],check.names=F),prior=c(.5,.5))
+lda7 <- lda(class ~ .,data=data.frame(class=classes,readyTrainingSet[,which(colnames(readyTrainingSet) %in% as.character(unlist(P7Result[1,6:12])))],check.names=F),prior=c(.5,.5))
+lda6 <- lda(class ~ .,data=data.frame(class=classes,readyTrainingSet[,which(colnames(readyTrainingSet) %in% as.character(unlist(P6Result[1,6:11])))],check.names=F),prior=c(.5,.5))
 lda5 <- lda(class ~ .,data=data.frame(class=classes,readyTrainingSet[,which(colnames(readyTrainingSet) %in% as.character(unlist(P5Result[1,6:10])))],check.names=F),prior=c(.5,.5))
 lda4 <- lda(class ~ .,data=data.frame(class=classes,readyTrainingSet[,which(colnames(readyTrainingSet) %in% as.character(unlist(P4Result[1,6:9])))],check.names=F),prior=c(.5,.5))
 lda3 <- lda(class ~ .,data=data.frame(class=classes,readyTrainingSet[,which(colnames(readyTrainingSet) %in% as.character(unlist(P3Result[1,6:8])))],check.names=F),prior=c(.5,.5))
 lda2 <- lda(class ~ .,data=data.frame(class=classes,readyTrainingSet[,which(colnames(readyTrainingSet) %in% as.character(unlist(P2Result[1,6:7])))],check.names=F),prior=c(.5,.5))
-ldaProbs <- rbind(data.frame(probability=predict(lda5,as.data.frame(readyTrainingSet,check.names=F))$posterior[,1],P=rep('p = 5',452),class=classes),
+ldaProbs <- rbind(data.frame(probability=predict(lda10,as.data.frame(readyTrainingSet,check.names=F))$posterior[,1],P=rep('p = 10',452),class=classes),
+	data.frame(probability=predict(lda9,as.data.frame(readyTrainingSet,check.names=F))$posterior[,1],P=rep('p = 9',452),class=classes),
+	data.frame(probability=predict(lda8,as.data.frame(readyTrainingSet,check.names=F))$posterior[,1],P=rep('p = 8',452),class=classes),
+	data.frame(probability=predict(lda7,as.data.frame(readyTrainingSet,check.names=F))$posterior[,1],P=rep('p = 7',452),class=classes),
+	data.frame(probability=predict(lda6,as.data.frame(readyTrainingSet,check.names=F))$posterior[,1],P=rep('p = 6',452),class=classes),
+	data.frame(probability=predict(lda5,as.data.frame(readyTrainingSet,check.names=F))$posterior[,1],P=rep('p = 5',452),class=classes),
 	data.frame(probability=predict(lda4,as.data.frame(readyTrainingSet,check.names=F))$posterior[,1],P=rep('p = 4',452),class=classes),
 	data.frame(probability=predict(lda3,as.data.frame(readyTrainingSet,check.names=F))$posterior[,1],P=rep('p = 3',452),class=classes),
 	data.frame(probability=predict(lda2,as.data.frame(readyTrainingSet,check.names=F))$posterior[,1],P=rep('p = 2',452),class=classes))
 
 ldaProbs$Class <- 'Tumor'
 ldaProbs[ldaProbs$class==0,]$Class <- 'Healthy'
-ggplot(ldaProbs,aes(x=probability,y=0,colour=Class))+geom_point(shape=5)+facet_wrap(~ P,ncol=2)+theme_bw()+scale_y_continuous(breaks=c(0))+xlab('Posterior Probability of Healthy Class')+ylab('')+theme(panel.margin=unit(2,'mm'))
+ggplot(ldaProbs,aes(x=probability,y=0,colour=Class))+geom_point(alpha=0.5, shape=5)+facet_wrap(~ P,ncol=2)+theme_bw()+scale_y_continuous(breaks=c(0))+xlab('Posterior Probability of Healthy Class')+ylab('')+theme(panel.margin=unit(2,'mm'))+scale_colour_manual(values=c('blue','red'))
 
 # Find the informative set of genes
 source('findInformative.R')

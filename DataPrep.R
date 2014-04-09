@@ -82,6 +82,7 @@ interTrainingSet <- NULL
 
 # Interact with NCBI's SRA db to get metadata for independent test data set.
 require(SRAdb)
+require(sqldf)
 sqlfile <- getSRAdbFile()
 sraCon <- dbConnect(SQLite(),sqlfile)
 # Get all accession identifiers for the independent test data set.
@@ -121,14 +122,42 @@ finFileMat$FPKM <- NULL
 finFileMat <- data.frame(run=finFileMat$run,gene_id=finFileMat$gene_id,expected_count=finFileMat$expected_count,check.names=F)
 castTestSet <- cast(finFileMat, run ~ gene_id)
 castTestSet <- merge(castTestSet, conversion, by = 'run')
+# Do some work to remove technical replicates, keeping those with largest library size.
+res <- rowSums(castTestSet[,2:20532])
+resTotal <- data.frame(run=castTestSet$run,libsize=res)
+resMerge <- merge(resTotal, conversion, by = 'run')
+keepLargestRun <- unlist(sqldf('select run from resMerge rs join (select sample, max(libsize) as maxLib from resMerge group by sample)a on a.sample = rs.sample and a.maxLib = rs.libsize'))
+castTestSet <- castTestSet[castTestSet$run %in% keepLargestRun,]
+# Technical replicates now removed, proceed.
+testClasses <- castTestSet$class
+castTestSet$classLabel <- 'Tumor'
+castTestSet[castTestSet$class==0,]$classLabel <- 'Healthy'
+testClassLabels <- castTestSet$classLabel
+castTestSet$classLabel <- NULL
+castTestSet$class <- NULL
 castTestSet$study <- NULL
 castTestSet$submission <- NULL
 castTestSet$sample <- NULL
 castTestSet$experiment <- NULL
 castTestSet$description <- NULL
+castTestSet <- data.frame(class=testClassLabels, castTestSet, check.names=F)
 rownames(castTestSet) <- castTestSet$run
 castTestSet$run <- NULL
 # Need to verify the above removes technical replicates when all data finished processing.
 
 # Write the test set file with class identifier. 
-write.table(castTestSet,"mungedTestSet.txt",sep='\t',col.names=T,row.names=T)
+write.table(castTestSet,"~/Thesis/mungedTestSet.txt",sep='\t',col.names=T,row.names=T)
+# Another version for professor.
+write.table(t(castTestSet),"~/Thesis/preparedTestSet.txt",sep='\t',col.names=T,row.names=T)
+
+# Read back in if needed.
+castTestSet <- read.table("~/Thesis/mungedTestSet.txt",sep='\t',header=T,check.names=F,row.names=1)
+testClasses <- rep(1, nrow(castTestSet))
+testClasses[castTestSet$class=='Healthy'] <- 0
+castTestSet$class <- NULL
+source('~/Thesis/upperQuartileNormalize.R')
+# Mean of upper quartiles from training data set
+s <- 1874.198
+# Scale & transform test data for use.
+testUq <- t(upperQuartileScale(t(castTestSet),s))
+readyTestSet <- log2(testUq+1.0)
