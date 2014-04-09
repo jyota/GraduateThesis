@@ -154,6 +154,7 @@ write.table(t(castTestSet),"~/Thesis/preparedTestSet.txt",sep='\t',col.names=T,r
 castTestSet <- read.table("~/Thesis/mungedTestSet.txt",sep='\t',header=T,check.names=F,row.names=1)
 testClasses <- rep(1, nrow(castTestSet))
 testClasses[castTestSet$class=='Healthy'] <- 0
+testClassLabels <- castTestSet$class 
 castTestSet$class <- NULL
 source('~/Thesis/upperQuartileNormalize.R')
 # Mean of upper quartiles from training data set
@@ -161,3 +162,8 @@ s <- 1874.198
 # Scale & transform test data for use.
 testUq <- t(upperQuartileScale(t(castTestSet),s))
 readyTestSet <- log2(testUq+1.0)
+
+# Write this 'ready' version for professor.
+writeTestSet <- data.frame(class=testClassLabels,readyTestSet,check.names=F)
+write.table(t(writeTestSet),"~/Thesis/transformedTestSet.txt",sep='\t',col.names=T,row.names=T)
+
