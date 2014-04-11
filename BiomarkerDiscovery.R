@@ -79,24 +79,24 @@ informativeSet = findInformative(x=as.matrix(readyTrainingSet),y=classes,rep=500
 write.table(informativeSet,"~/Thesis/informativeSetDetermine.txt",sep='\t',col.names=T,row.names=T)
 
 # If needed to be read back in:
-informativeSet <- read.table("~/Thesis/informativeSetDetermine.txt",sep='\t',header=T,row.names=1)
+#informativeSet <- read.table("~/Thesis/informativeSetDetermine.txt",sep='\t',header=T,row.names=1)
 
 informativeSet$T2 <- as.numeric(as.character(informativeSet$T2))
 # Find a candidate level for T2 to cutoff at. We'll go from anything not associated with T2 > 2.0 and increment cutoff each run.
 # Obtain accuracy estimates from modified bagging for genes not above each cutoff to help make decision.
-infSetTwo <- modifiedBagging(as.matrix(readyTrainingSet[,-which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>2.0,3:7]))]),classes,rep=100,stopP=5,stopT2=1000,proportion=.8,progressBar=T,priors=c(.5,.5))
+infSetTwo <- modifiedBagging(as.matrix(readyTrainingSet[,-which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>2.0,3:10]))]),classes,rep=100,stopP=8,stopT2=1000,proportion=.8,progressBar=T,priors=c(.5,.5))
 write.table(infSetTwo$repStats,"~/Thesis/infSetTwo.txt",sep='\t',row.names=T,col.names=T)
-infSetThree <- modifiedBagging(as.matrix(readyTrainingSet[,-which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>3.0,3:7]))]),classes,rep=100,stopP=5,stopT2=1000,proportion=.8,progressBar=T,priors=c(.5,.5))
+infSetThree <- modifiedBagging(as.matrix(readyTrainingSet[,-which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>3.0,3:10]))]),classes,rep=100,stopP=8,stopT2=1000,proportion=.8,progressBar=T,priors=c(.5,.5))
 write.table(infSetThree$repStats,"~/Thesis/infSetThree.txt",sep='\t',row.names=T,col.names=T)
-infSetFour <- modifiedBagging(as.matrix(readyTrainingSet[,-which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>4.0,3:7]))]),classes,rep=100,stopP=5,stopT2=1000,proportion=.8,progressBar=T,priors=c(.5,.5))
+infSetFour <- modifiedBagging(as.matrix(readyTrainingSet[,-which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>4.0,3:10]))]),classes,rep=100,stopP=8,stopT2=1000,proportion=.8,progressBar=T,priors=c(.5,.5))
 write.table(infSetFour$repStats,"~/Thesis/infSetFour.txt",sep='\t',row.names=T,col.names=T)
-infSetFive <- modifiedBagging(as.matrix(readyTrainingSet[,-which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>5.0,3:7]))]),classes,rep=100,stopP=5,stopT2=1000,proportion=.8,progressBar=T,priors=c(.5,.5))
+infSetFive <- modifiedBagging(as.matrix(readyTrainingSet[,-which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>5.0,3:10]))]),classes,rep=100,stopP=8,stopT2=1000,proportion=.8,progressBar=T,priors=c(.5,.5))
 write.table(infSetFive$repStats,"~/Thesis/infSetFive.txt",sep='\t',row.names=T,col.names=T)
 # Check out more granular cutoffs to see what may be appropriate.
-infSetThreePointFive <- modifiedBagging(as.matrix(readyTrainingSet[,-which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>3.5,3:7]))]),classes,rep=100,stopP=5,stopT2=1000,proportion=.8,progressBar=T,priors=c(.5,.5))
+infSetSix <- modifiedBagging(as.matrix(readyTrainingSet[,-which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>6.0,3:10]))]),classes,rep=100,stopP=8,stopT2=1000,proportion=.8,progressBar=T,priors=c(.5,.5))
+write.table(infSetSix$repStats,"~/Thesis/infSetSix.txt",sep='\t',row.names=T,col.names=T)
+infSetThreePointFive <- modifiedBagging(as.matrix(readyTrainingSet[,-which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>3.5,3:10]))]),classes,rep=100,stopP=8,stopT2=1000,proportion=.8,progressBar=T,priors=c(.5,.5))
 write.table(infSetThreePointFive$repStats,"~/Thesis/infSetThreePointFive.txt",sep='\t',row.names=T,col.names=T)
-infSetTwoPointFive <- modifiedBagging(as.matrix(readyTrainingSet[,-which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>2.5,3:7]))]),classes,rep=100,stopP=5,stopT2=1000,proportion=.8,progressBar=T,priors=c(.5,.5))
-write.table(infSetTwoPointFive$repStats,"~/Thesis/infSetTwoPointFive.txt",sep='\t',row.names=T,col.names=T)
 
 
 # Plot informative set, with line for our cutoff
