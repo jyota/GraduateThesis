@@ -95,7 +95,12 @@ write.table(infSetNotFour$repStats,"~/Thesis/infSetNotFour.txt",sep='\t',row.nam
 infSetThreePointFive <- modifiedBagging(as.matrix(readyTrainingSet[,which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>=3.5,3:10]))]),classes,rep=500,stopP=8,stopT2=1000,proportion=.8,progressBar=T,priors=c(.5,.5))
 write.table(infSetThreePointFive$repStats,"~/Thesis/infSetThreePointFive.txt",sep='\t',row.names=T,col.names=T)
 infSetNotThreePointFive <- modifiedBagging(as.matrix(readyTrainingSet[,-which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>=3.5,3:10]))]),classes,rep=500,stopP=8,stopT2=1000,proportion=.8,progressBar=T,priors=c(.5,.5))
-write.table(infSetThreePointFive$repStats,"~/Thesis/infSetNotThreePointFive.txt",sep='\t',row.names=T,col.names=T)
+write.table(infSetNotThreePointFive$repStats,"~/Thesis/infSetNotThreePointFive.txt",sep='\t',row.names=T,col.names=T)
+infSetTwoPointFive <- modifiedBagging(as.matrix(readyTrainingSet[,which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>=2.5,3:10]))]),classes,rep=500,stopP=8,stopT2=1000,proportion=.8,progressBar=T,priors=c(.5,.5))
+write.table(infSetTwoPointFive$repStats,"~/Thesis/infSetTwoPointFive.txt",sep='\t',row.names=T,col.names=T)
+infSetNotTwoPointFive <- modifiedBagging(as.matrix(readyTrainingSet[,-which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>=2.5,3:10]))]),classes,rep=500,stopP=8,stopT2=1000,proportion=.8,progressBar=T,priors=c(.5,.5))
+write.table(infSetNotTwoPointFive$repStats,"~/Thesis/infSetNotTwoPointFive.txt",sep='\t',row.names=T,col.names=T)
+
 
 # Plot informative set, with line for our cutoff
 informativeSet$Index <- as.numeric(as.character(informativeSet$Index))
