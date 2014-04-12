@@ -108,42 +108,20 @@ ggplot(informativeSet,aes(x=Index,y=T2))+geom_point()+theme_bw()+geom_hline(yint
 
 source('findInformativeBagging.R')
 # Get estimates for final informative set of genes now that cutoff decided (1000 modified bagging schema iterations). Store associated variables this time.
-infSetFinal <- findInformativeBagging(as.matrix(readyTrainingSet[,which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>3.0,3:7]))]),classes,rep=1000,stopP=5,stopT2=1000,proportion=.8,priors=c(.5,.5))
+infSetFinal <- findInformativeBagging(as.matrix(readyTrainingSet[,which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>=3.0,3:10]))]),classes,rep=1000,stopP=8,stopT2=1000,proportion=.8,priors=c(.5,.5))
 write.table(infSetFinal,"~/Thesis/infSetFinal.txt",sep='\t',row.names=T,col.names=T)
 
-# Show 'discriminatory space' for LDA classifier from informative set via posterior probabilities of class.
-infBiomarker <- hybridFeatureSelection(as.matrix(readyTrainingSet[,which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>3.0,3:7]))]),classes,stopP=5,stopT2=1000)
-# Fit an LDA model with biomarker variables
-infFit <- lda(class ~ .,data=data.frame(as.matrix(readyTrainingSet[,which(colnames(readyTrainingSet) %in% names(infBiomarker))]),class=classes,check.names=F),prior=c(.5,.5))
-infPredFit <- predict(infFit, data.frame(readyTrainingSet,check.names=F))
-infPlotFit <- data.frame(classProb=c(infPredFit$posterior[,1],infPredFit$posterior[,2]),
-	shown_class=c(rep('Healthy',length(classes)),rep('Tumor',length(classes))),actual_class=c(classes,classes))
-infPlotFit$Class <- 'Healthy'
-infPlotFit[infPlotFit$actual_class==1,]$Class <- 'Tumor'
-ggplot(infPlotFit,aes(classProb,fill=Class))+geom_histogram(binwidth=0.02)+facet_grid(shown_class ~ .) + theme_bw()+xlab('Posterior Probability of Class Membership')
-
 # Check these estimates for entire set of variables (1000 modified bagging schema iterations)
-fullSetFinal <- findInformativeBagging(as.matrix(readyTrainingSet),classes,rep=1000,stopP=5,stopT2=1000,proportion=.8,priors=c(.5,.5))
+fullSetFinal <- findInformativeBagging(as.matrix(readyTrainingSet),classes,rep=1000,stopP=8,stopT2=1000,proportion=.8,priors=c(.5,.5))
 write.table(fullSetFinal,"~/Thesis/fullSetFinal.txt",sep='\t',row.names=T,col.names=T)
 
 # Get modified bagging estimates for 'non-informative' set of genes
-nonInfSetFinal <- findInformativeBagging(as.matrix(readyTrainingSet[,-which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>3.0,3:7]))]),classes,rep=1000,stopP=5,stopT2=1000,proportion=.8,priors=c(.5,.5))
+nonInfSetFinal <- findInformativeBagging(as.matrix(readyTrainingSet[,-which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>=3.0,3:10]))]),classes,rep=1000,stopP=8,stopT2=1000,proportion=.8,priors=c(.5,.5))
 write.table(nonInfSetFinal$repStats,"~/Thesis/nonInfSetFinal.txt",sep='\t',row.names=T,col.names=T)
-
-# Show 'discriminatory space' for LDA classifier NOT from informative set
-infBiomarker <- hybridFeatureSelection(as.matrix(readyTrainingSet[,-which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>3.0,3:7]))]),classes,stopP=5,stopT2=1000)
-# Fit an LDA model with biomarker variables
-infFit <- lda(class ~ .,data=data.frame(as.matrix(readyTrainingSet[,which(colnames(readyTrainingSet) %in% names(infBiomarker))]),class=classes,check.names=F),prior=c(.5,.5))
-infPredFit <- predict(infFit, data.frame(readyTrainingSet,check.names=F))
-infPlotFit <- data.frame(classProb=c(infPredFit$posterior[,1],infPredFit$posterior[,2]),
-	shown_class=c(rep('Healthy',length(classes)),rep('Tumor',length(classes))),actual_class=c(classes,classes))
-infPlotFit$Class <- 'Healthy'
-infPlotFit[infPlotFit$actual_class==1,]$Class <- 'Tumor'
-ggplot(infPlotFit,aes(classProb,fill=Class))+geom_histogram(binwidth=0.02)+facet_grid(shown_class ~ .) + theme_bw()+xlab('Posterior Probability of Class Membership')
 
 # Cluster by Pearson's correlation distance 
 require(Hmisc)
-clustResult <- varclus(readyTrainingSet[,which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>4.0,3:7]))],similarity='pearson',method='complete')
+clustResult <- varclus(readyTrainingSet[,which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>=3.0,3:10]))],similarity='pearson',method='complete')
 memb <- cutree(clustResult$hclust,k=10)
 clusteringResult <- data.frame(cluster=seq(1:10),size=rep(0,10),use=rep(0,10),avg_use=rep(0,10))
 for(i in 1:10){
@@ -153,7 +131,7 @@ for(i in 1:10){
 clusteringResult$avg_use <- clusteringResult$use / clusteringResult$size
 
 # Identify frequently used genes -- those that are in at least 1% of OOB classifiers in informative set of genes modified bagging classifiers.
-q <- table(unlist(infSetFinal[infSetFinal$Accuracy==1,6:10]))/1000.0
+q <- table(unlist(infSetFinal[infSetFinal$Accuracy==1,6:13]))/1000.0
 frequentlyUsed <- q[q>=0.01]
 # Frequent primaries will be those from frequentlyUsed that also are in clusters with >=15% average use
 frequentPrimary <- names(frequentlyUsed)[names(frequentlyUsed) %in% names(memb[memb %in% c(clusteringResult[clusteringResult$avg_use>15.0,]$cluster)])]
