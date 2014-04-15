@@ -136,7 +136,7 @@ frequentlyUsed <- q[q>=0.01]
 # Frequent primaries will be those from frequentlyUsed that also are in clusters with >=15% average use
 frequentPrimary <- names(frequentlyUsed)[names(frequentlyUsed) %in% names(memb[memb %in% c(clusteringResult[clusteringResult$avg_use>15.0,]$cluster)])]
 # These intersect with those used in perfect OOB classifiers for full training set.
-frequentPrimary[frequentPrimary %in% unlist(fullSetFinal[fullSetFinal$Accuracy==1,6:10])]
+frequentPrimary[frequentPrimary %in% unlist(fullSetFinal[fullSetFinal$Accuracy==1,6:13])]
 
 finalBiomarker <- hybridFeatureSelection(as.matrix(readyTrainingSet[,which(colnames(readyTrainingSet) %in% frequentPrimary)]),classes,stopP=5,stopT2=1000)
 
@@ -146,9 +146,9 @@ biomarkerFit <- lda(class ~ .,data=data.frame(as.matrix(readyTrainingSet[,which(
 table(classes,predict(biomarkerFit,priors=c(.5,.5),data.frame(readyTrainingSet,check.names=F))$class)
 
 # Retrieve biomarker genes from model in case they were lost somehow
-finalBiomarker <- names(attributes(biomarkerFit$terms)$dataClasses)[2:6]
+finalBiomarker <- names(attributes(biomarkerFit$terms)$dataClasses)[2:9]
 
 # Intersection of 1,000 modified bagging iteration full training set perfect classifiers and frequent primary genes.
-table(unlist(fullSetFinal[fullSetFinal$Accuracy==1.0,6:10])[unlist(fullSetFinal[fullSetFinal$Accuracy==1.0,6:10]) %in% frequentPrimary])
+table(unlist(fullSetFinal[fullSetFinal$Accuracy==1.0,6:13])[unlist(fullSetFinal[fullSetFinal$Accuracy==1.0,6:13]) %in% frequentPrimary])
 # Intersection like the above, but for informative set of genes only.
-table(unlist(infSetFinal[infSetFinal$Accuracy==1.0,6:10])[unlist(infSetFinal[infSetFinal$Accuracy==1.0,6:10]) %in% frequentPrimary])
+table(unlist(infSetFinal[infSetFinal$Accuracy==1.0,6:13])[unlist(infSetFinal[infSetFinal$Accuracy==1.0,6:13]) %in% frequentPrimary])
