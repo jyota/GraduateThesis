@@ -104,7 +104,7 @@ write.table(infSetNotTwoPointFive$repStats,"~/Thesis/infSetNotTwoPointFive.txt",
 
 # Plot informative set, with line for our cutoff
 informativeSet$Index <- as.numeric(as.character(informativeSet$Index))
-ggplot(informativeSet,aes(x=Index,y=T2))+geom_point()+theme_bw()+geom_hline(yintercept=3.0,colour='red',alpha=.8)
+ggplot(informativeSet,aes(x=Index,y=T2))+geom_point()+theme_bw()+geom_hline(yintercept=3.0,colour='red',alpha=.8)+scale_y_continuous(breaks=c(0,1,2,3,4,5,6,7,8))
 
 source('findInformativeBagging.R')
 # Get estimates for final informative set of genes now that cutoff decided (1000 modified bagging schema iterations). Store associated variables this time.
@@ -122,28 +122,30 @@ write.table(nonInfSetFinal,"~/Thesis/nonInfSetFinal.txt",sep='\t',row.names=T,co
 # Cluster by Pearson's correlation distance 
 require(Hmisc)
 clustResult <- varclus(readyTrainingSet[,which(colnames(readyTrainingSet) %in% unlist(informativeSet[informativeSet$T2>=3.0,3:10]))],similarity='pearson',method='complete')
-memb <- cutree(clustResult$hclust,k=10)
-clusteringResult <- data.frame(cluster=seq(1:10),size=rep(0,10),use=rep(0,10),avg_use=rep(0,10))
-for(i in 1:10){
+memb <- cutree(clustResult$hclust,k=20)
+clusteringResult <- data.frame(cluster=seq(1:20),size=rep(0,20),use=rep(0,20),avg_use=rep(0,20))
+for(i in 1:20){
 	clusteringResult[i,]$size <- table(memb)[i]
-	clusteringResult[i,]$use <- sum(table(unlist(infSetFinal[infSetFinal$Accuracy==1,6:10]))[names(table(unlist(infSetFinal[infSetFinal$Accuracy==1,6:10]))) %in% names(memb[memb==i])])
+	clusteringResult[i,]$use <- sum(table(unlist(infSetFinal[infSetFinal$Accuracy==1,6:13]))[names(table(unlist(infSetFinal[infSetFinal$Accuracy==1,6:13]))) %in% names(memb[memb==i])])
 }
 clusteringResult$avg_use <- clusteringResult$use / clusteringResult$size
 
 # Identify frequently used genes -- those that are in at least 1% of OOB classifiers in informative set of genes modified bagging classifiers.
 q <- table(unlist(infSetFinal[infSetFinal$Accuracy==1,6:13]))/1000.0
 frequentlyUsed <- q[q>=0.01]
-# Frequent primaries will be those from frequentlyUsed that also are in clusters with >=15% average use
-frequentPrimary <- names(frequentlyUsed)[names(frequentlyUsed) %in% names(memb[memb %in% c(clusteringResult[clusteringResult$avg_use>15.0,]$cluster)])]
-# These intersect with those used in perfect OOB classifiers for full training set.
-frequentPrimary[frequentPrimary %in% unlist(fullSetFinal[fullSetFinal$Accuracy==1,6:13])]
+# Frequent primaries will be those from frequentlyUsed that also are in clusters with >5% average use
+frequentPrimary <- names(frequentlyUsed)[names(frequentlyUsed) %in% names(memb[memb %in% c(clusteringResult[clusteringResult$avg_use>5.0,]$cluster)])]
+# These intersect with those used in at least 1% perfect OOB classifiers for full training set.
+q <- table(unlist(fullSetFinal[fullSetFinal$Accuracy==1,6:13]))/1000.0
+frequentlyUsed <- q[q>=0.01]
+mostFrequent <- frequentPrimary[frequentPrimary %in% names(frequentlyUsed)]
 
-finalBiomarker <- hybridFeatureSelection(as.matrix(readyTrainingSet[,which(colnames(readyTrainingSet) %in% frequentPrimary)]),classes,stopP=5,stopT2=1000)
+finalBiomarker <- hybridFeatureSelection(as.matrix(readyTrainingSet[,which(colnames(readyTrainingSet) %in% mostFrequent)]),classes,stopP=8,stopT2=1000)
 
 # Fit an LDA model with biomarker variables
 biomarkerFit <- lda(class ~ .,data=data.frame(as.matrix(readyTrainingSet[,which(colnames(readyTrainingSet) %in% names(finalBiomarker))]),class=classes,check.names=F),prior=c(.5,.5))
 # Confusion matrix for training data (just for gut check, not relevant result really)
-table(classes,predict(biomarkerFit,priors=c(.5,.5),data.frame(readyTrainingSet,check.names=F))$class)
+table(classes,predict(biomarkerFit,prior=c(.5,.5),data.frame(readyTrainingSet,check.names=F))$class)
 
 # Retrieve biomarker genes from model in case they were lost somehow
 finalBiomarker <- names(attributes(biomarkerFit$terms)$dataClasses)[2:9]
@@ -152,3 +154,15 @@ finalBiomarker <- names(attributes(biomarkerFit$terms)$dataClasses)[2:9]
 table(unlist(fullSetFinal[fullSetFinal$Accuracy==1.0,6:13])[unlist(fullSetFinal[fullSetFinal$Accuracy==1.0,6:13]) %in% frequentPrimary])
 # Intersection like the above, but for informative set of genes only.
 table(unlist(infSetFinal[infSetFinal$Accuracy==1.0,6:13])[unlist(infSetFinal[infSetFinal$Accuracy==1.0,6:13]) %in% frequentPrimary])
+
+# Examine distribution of expression values chosen for biomarker in both test and training set.
+q = data.frame(class=classes,readyTrainingSet[,which(colnames(readyTrainingSet) %in% c(names(finalBiomarker)))],check.names=F)
+postGeneExamine <- melt(q, id=c('class'))
+postGeneExamine$dataset <- 'Training'
+q = data.frame(class=testClasses,readyTestSet[,which(colnames(readyTestSet) %in% c(names(finalBiomarker)))],check.names=F)
+postGene2 <- melt(q, id=c('class'))
+postGene2$dataset <- 'Test'
+combGene <- rbind(postGeneExamine, postGene2)
+combGene$Class <- 'Tumor'
+combGene[combGene$class==0, ]$Class <- 'Healthy'
+ggplot(combGene,aes(x=value, fill=Class)) + geom_density(alpha=.5) + facet_wrap(~ variable + dataset, ncol=2)+theme_bw()+xlab('Normalized & transformed expression value')
