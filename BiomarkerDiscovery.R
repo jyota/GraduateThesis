@@ -166,3 +166,12 @@ combGene <- rbind(postGeneExamine, postGene2)
 combGene$Class <- 'Tumor'
 combGene[combGene$class==0, ]$Class <- 'Healthy'
 ggplot(combGene,aes(x=value, fill=Class)) + geom_density(alpha=.5) + facet_wrap(~ variable + dataset, ncol=2)+theme_bw()+xlab('Normalized & transformed expression value')
+
+# Plot discriminatory space for test set classifier
+ret = c(50, 894, 1221, 1672, 6022, 6605, 6929, 7276)
+fuse = lda(x = readyTrainingSet[, which(colnames(readyTrainingSet) %in% colnames(readyTrainingSet)[ret])], grouping = classes, prior = c(.5, .5))
+
+res = data.frame(LD = predict(fuse, readyTestSet[, which(colnames(readyTestSet) %in% colnames(readyTrainingSet)[ret])])$x, class = testClasses)
+
+ggplot(res, aes(x = LD1, y = ifelse(class == 0, 0.1, -0.1), colour = ifelse(class == 0, "Healthy", "Tumor"))) + geom_point(shape = 5) + coord_cartesian(ylim = c(-10, 10)) + scale_colour_manual(name = "Sample Class", values = c("blue", "red")) + geom_vline(xintercept = 0, col = "purple", linetype = 2) + coord_cartesian(ylim=c(-0.5, 0.5)) + ylab("") + xlab("Sample linear score (given by R LDA model)") + scale_y_discrete(breaks = NULL) + theme_bw()
+
