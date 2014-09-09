@@ -169,22 +169,32 @@ writeTestSet <- data.frame(class=testClassLabels,readyTestSet,check.names=F)
 write.table(t(writeTestSet),"~/Thesis/transformedTestSet.txt",sep='\t',col.names=T,row.names=T)
 
 # Check how RefSeq genes in NCBI GEO accession GSE40419 may differ from genes available in training & test data sets.
-gse40419 <- read.table("GSE40419_LC-87_RPKM_expression.txt", sep = '\t', header = TRUE)
+gse40419 <- read.table("GSE40419_LC-87_RPKM_expression.txt", sep = '\t', header = TRUE, stringsAsFactors = FALSE)
 gseGenes <- as.character(unique(gse40419$gene))
 trainingSetGenes <- as.character(colnames(castTrainingSet))
 trainingSetGenes <- trainingSetGenes[trainingSetGenes != "class"]
 trainingSetEntrez <- unique(sub(".*\\|", "", trainingSetGenes))
+trainingSetGeneFull <- data.frame(gene = toupper(sub("\\|.*", "", trainingSetGenes)), entrez_id = sub(".*\\|", "", trainingSetGenes), stringsAsFactors = FALSE)
 require(annotation)
 library(hgu95av2.db)
-xx <- select(hgu95av2.db, keys = as.character(gse40419$accession), columns = c("SYMBOL", "GENENAME", "ALIAS", "ENTREZID"), keytype = "REFSEQ")
-gseEntrez <- unique(xx$ENTREZID)
-# Check how many entrez gene IDs match between the two (20,424 out of 20,531 in training set)
-length(intersect(gseEntrez, trainingSetEntrez))
-bothSetEntrez <- intersect(gseEntrez, trainingSetEntrez)
-# 107 didn't join from training
-missingTrainingEntrez <- trainingSetEntrez[!trainingSetEntrez %in% bothSetEntrez]
-# 1,959 didn't join from GSE
-missingGseEntrez <- gseEntrez[!gseEntrez %in% bothSetEntrez]
-# Unsure why these are different; pipeline had been re-run for test set.
-# Further investigation could warrant more associations.
+require(sqldf)
+
+xx <- select(hgu95av2.db, keys = as.character(gse40419$accession), columns = c("SYMBOL", "GENENAME", "ALIAS", "ENTREZID", "REFSEQ"), keytype = "REFSEQ")
+xx$ALIAS <- toupper(xx$ALIAS)
+xx$SYMBOL <- toupper(xx$SYMBOL)
+xx$GENENAME <- toupper(xx$GENENAME)
+gseEntrez <- unique(xx[!is.na(xx$ENTREZID), ]$ENTREZID)
+joinedToGse <- sqldf("SELECT tf.*, xx.ALIAS, xx.SYMBOL, xx.GENENAME FROM trainingSetGeneFull tf join xx on (tf.entrez_id = xx.ENTREZID)")
+# Joining on entrez ID joins all but 107 from training set to GSE matrix
+length(unique(joinedToGse$entrez_id))
+leftOvers = trainingSetGeneFull[!trainingSetGeneFull$entrez_id %in% unique(joinedToGse$entrez_id), ]
+#check the leftovers via entrez ID...
+xx <- select(hgu95av2.db, keys = as.character(leftOvers$entrez_id), columns = c("SYMBOL", "GENENAME", "ALIAS", "ENTREZID", "REFSEQ"), keytype = "ENTREZID")
+# do these join up to the GSE on REFSEQ?
+xx <- xx[!is.na(xx$REFSEQ), ]
+gseAddl <- sqldf("select xx.*, gse.gene, gse.accession from xx join gse40419 gse on gse.accession = xx.REFSEQ", drv = "SQLite")
+# No, zero.
+nrow(gseAddl)
+# Looks like based on RefSeq -> Entrez ID conversion then join, these don't match between files.
+# At least some seem due to outdated RefSeq accessions in the test matrix file... 
 
