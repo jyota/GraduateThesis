@@ -168,3 +168,23 @@ readyTestSet <- log2(testUq+1.0)
 writeTestSet <- data.frame(class=testClassLabels,readyTestSet,check.names=F)
 write.table(t(writeTestSet),"~/Thesis/transformedTestSet.txt",sep='\t',col.names=T,row.names=T)
 
+# Check how RefSeq genes in NCBI GEO accession GSE40419 may differ from genes available in training & test data sets.
+gse40419 <- read.table("GSE40419_LC-87_RPKM_expression.txt", sep = '\t', header = TRUE)
+gseGenes <- as.character(unique(gse40419$gene))
+trainingSetGenes <- as.character(colnames(castTrainingSet))
+trainingSetGenes <- trainingSetGenes[trainingSetGenes != "class"]
+trainingSetEntrez <- unique(sub(".*\\|", "", trainingSetGenes))
+require(annotation)
+library(hgu95av2.db)
+xx <- select(hgu95av2.db, keys = as.character(gse40419$accession), columns = c("SYMBOL", "GENENAME", "ALIAS", "ENTREZID"), keytype = "REFSEQ")
+gseEntrez <- unique(xx$ENTREZID)
+# Check how many entrez gene IDs match between the two (20,424 out of 20,531 in training set)
+length(intersect(gseEntrez, trainingSetEntrez))
+bothSetEntrez <- intersect(gseEntrez, trainingSetEntrez)
+# 107 didn't join from training
+missingTrainingEntrez <- trainingSetEntrez[!trainingSetEntrez %in% bothSetEntrez]
+# 1,959 didn't join from GSE
+missingGseEntrez <- gseEntrez[!gseEntrez %in% bothSetEntrez]
+# Unsure why these are different; pipeline had been re-run for test set.
+# Further investigation could warrant more associations.
+
